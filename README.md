@@ -1,4 +1,4 @@
-# Minesweeper Haskell
+# minesweeper-haskell
 
 We will be developing the popular Microsoft game Minesweeper. Minesweeper is a logic puzzle video game that features a grid of clickable squares, with hidden "mines" scattered throughout the board. We will be using the Brick library in Haskell to build the game on a TUI. 
 
