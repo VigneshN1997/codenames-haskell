@@ -1,6 +1,7 @@
 import System.IO
 import Data.Set hiding (map, filter)
 import Prelude
+import Brick
 
 data GameBoard = 
     Board Matrix Length Width
