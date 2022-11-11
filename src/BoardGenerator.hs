@@ -1,3 +1,5 @@
+module BoardGenerator where
+
 import System.IO
 import Data.Set hiding (map, filter)
 import Prelude

@@ -21,6 +21,8 @@ description:         Please see the README on GitHub at <https://github.com/Vign
 
 dependencies:
 - base >= 4.7 && < 5
+- brick
+- containers
 
 ghc-options:
 - -Wall
