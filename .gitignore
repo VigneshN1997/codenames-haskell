@@ -24,3 +24,4 @@ cabal.project.local
 .vscode/
 dist-newstyle/
 stack.yaml.lock
+.DS_Store
