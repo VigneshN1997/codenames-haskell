@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - brick
 - containers
+- microlens
 
 ghc-options:
 - -Wall
