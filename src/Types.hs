@@ -74,29 +74,36 @@ flagCell game = updateCell updateFn game
                             Mine coord flag False -> Mine coord (not flag) False
                             Mine coord _ True -> Mine coord False True
 
+-- utility for adjacent cells
 adjDirs :: [(Int, Int)]
 adjDirs = [(-1,0), (1,0), (0,-1), (0,1), (-1,-1), (-1,1), (1,-1), (1,1)]
 
+-- gets the length of a list of Coord
 getLength :: [Coord] -> Int
 getLength [] = 0
 getLength (_:ls) = 1 + getLength ls
 
+
+-- gets the cell for the current row and column
 getCell :: RIdx -> CIdx -> Set Coord -> Cell
 getCell r c mineSet = if (member (Loc r c) mineSet)
                     then (Mine (Loc r c) False False)
                     else (Normal (Loc r c)  (getAdjBombCount r c mineSet) False False)
 
+-- gets adjacent bombs count for the current r c grid cell
 getAdjBombCount :: RIdx -> CIdx -> Set Coord -> Int
 getAdjBombCount r c mineSet = getLength (filter (\(Loc x y) -> (member (Loc x y) mineSet)) (getAdjIndices r c adjDirs []))
 
 
+-- gets the 8 adjacent indices given r c grid cell
 getAdjIndices :: RIdx -> CIdx -> [(Int, Int)] -> [Coord] -> [Coord]
 getAdjIndices _ _ [] accLis = accLis
 getAdjIndices r c ((dx, dy):dirs) accLis =  getAdjIndices r c dirs ((Loc modr modc):accLis)
                                                 where
                                                     modr = r + dx
                                                     modc = c + dy
--- initialize game board
+
+-- initialize game board given length width and mine set
 initBoard :: Int -> Int -> Set Coord -> GameBoard
 initBoard nr nc mineSet = 
                 Board {
@@ -111,4 +118,10 @@ initBoard nr nc mineSet =
 
 
 -- mines = [(Loc 0 0), (Loc 1 1), (Loc 2 2)]
+-- initial set of mine cells
+-- mineSet :: Set Coord
 -- mineSet = fromList mines
+
+-- test game board
+-- mat1 :: GameBoard
+-- mat1 = initBoard 4 4 mineSet

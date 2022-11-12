@@ -46,6 +46,9 @@ module BoardGenerator where
 --                     getRow :: Row -> [Col]
 --                     getRow r = [getNum r c mineSet | c <- [0..(width-1)]]
 
+-- initial list of mine cells
+-- mines :: [Coord]
+-- mines = [Loc 0 0, Loc 1 1, Loc 2 2]
 
 
 
