@@ -1,17 +1,19 @@
-# minesweeper-haskell
+# Codenames-Haskell
 
-We will be developing the popular Microsoft game Minesweeper. Minesweeper is a logic puzzle video game that features a grid of clickable squares, with hidden "mines" scattered throughout the board. We will be using the Brick library in Haskell to build the game on a TUI. 
+We will be developing the popular board game Codenames. The game has two teams competing by each having a "spymaster" give one-word clues that can point to multiple words on the board. The other players on the team attempt to guess their team's words while avoiding the words of the other team.
+2 laptops will be connected (one having the spymaster view and one with the player view) So the game states need to be communicated between the machines.
+
+We will be using the Brick library in Haskell to build the game on a TUI. 
 
 Goals/Stages of project development:
 
-- Code Architecture: Structure of the project, divided into different modules of UI, game states definition, handling events, implementing game algorithm, defining leaderboard.
-- Interface module(Board UI design): Develop UI for a fixed board size using brick. 
+- Code Architecture: Structure of the project, divided into different modules of UI, game states definition, handling events, implementing game algorithm, defining team scores and leaderboard.
+- Interface module(Board UI design): Develop UI for the spymaster view and the player view. 
 - Game states: Define the different states for the game (in terms of data types)
+- Networking: There will be two machines connected, one with the player view and one with the spymaster view. The spymaster will give the word hint and the number of words to guess and the player will get this hint and guess words. If the guess is correct, update the card on the player view accordingly and also send the communication to spymaster view for the corresponding player guesses.
 - Handling events: Understand how click/keyboard events can be read from the board and mapped to game states.
-- Implementing game algorithm: how to randomize bomb placement on the board, implement the minesweeper algorithm (defining perimeter of safe squares)
-- Defining leaderboard: saving game states on disk, previous games played by a user, and loading it up and showing on UI everytime the game is run.
-- 
+- Implementing game algorithm: logic of selecting cards : correct guess/incorrect guess, when a game ends, when a team wins?
+- Defining team scores: updating team scores on guessing correctly
+- Generating word lists from given set of words to be used for a game (File IO to read word lists from persistent storage).
 - (To do depending on scope and time)
-    - Adding more levels to the game (increasing board size, increasing number of bombs in the game) 
     - Saving game state: Intro screen showing play new game or load previous saved game state.
-    - Multiplayer minesweeper: 2 players playing minesweeper concurrently/alternatively on the same board maintaining the scores of both users together.
