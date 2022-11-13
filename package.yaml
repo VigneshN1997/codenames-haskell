@@ -24,6 +24,8 @@ dependencies:
 - brick
 - containers
 - microlens
+- text
+- vty
 
 ghc-options:
 - -Wall
