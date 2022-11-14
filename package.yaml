@@ -27,6 +27,7 @@ dependencies:
 - text
 - vty
 - network
+- bytestring
 
 ghc-options:
 - -Wall
@@ -44,7 +45,7 @@ library:
 
 executables:
   codenames-haskell-exe:
-    main:                Main.hs
+    main:               Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
@@ -52,6 +53,22 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - codenames-haskell
+
+  chat-server-exe:
+    hs-source-dirs:      src/server-client/server
+    main-is:             Main.hs
+    ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+    dependencies:       
+    - base
+    - network
+    
+  chat-client-exe:
+    hs-source-dirs:      src/server-client/client
+    main-is:             Main.hs
+    ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+    dependencies:       
+    - base
+    - network
 
 tests:
   codenames-haskell-test:

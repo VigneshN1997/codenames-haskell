@@ -38,8 +38,46 @@ library
   build-depends:
       base >=4.7 && <5
     , brick
+    , bytestring
     , containers
     , microlens
+    , network
+    , text
+    , vty
+  default-language: Haskell2010
+
+executable chat-client-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_codenames_haskell
+  hs-source-dirs:
+      src/server-client/client
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , brick
+    , bytestring
+    , containers
+    , microlens
+    , network
+    , text
+    , vty
+  default-language: Haskell2010
+
+executable chat-server-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_codenames_haskell
+  hs-source-dirs:
+      src/server-client/server
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base
+    , brick
+    , bytestring
+    , containers
+    , microlens
+    , network
     , text
     , vty
   default-language: Haskell2010
@@ -54,9 +92,11 @@ executable codenames-haskell-exe
   build-depends:
       base >=4.7 && <5
     , brick
+    , bytestring
     , codenames-haskell
     , containers
     , microlens
+    , network
     , text
     , vty
   default-language: Haskell2010
@@ -72,9 +112,11 @@ test-suite codenames-haskell-test
   build-depends:
       base >=4.7 && <5
     , brick
+    , bytestring
     , codenames-haskell
     , containers
     , microlens
+    , network
     , text
     , vty
   default-language: Haskell2010
