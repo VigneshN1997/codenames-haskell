@@ -5,6 +5,7 @@ module Game
   , PlayerBoard(..)
   , Direction(..)
   , CardColor(..)
+  , Coord(..)
   , createPlayerGrid
 
 ) where
