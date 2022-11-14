@@ -1,6 +1,6 @@
-name:                minesweeper-haskell
+name:                codenames-haskell
 version:             0.1.0.0
-github:              "VigneshN1997/minesweeper-haskell"
+github:              "VigneshN1997/codenames-haskell"
 license:             BSD3
 author:              "Vignesh"
 maintainer:          "vigneshnandakumar1997@gmail.com"
@@ -17,7 +17,7 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/VigneshN1997/minesweeper-haskell#readme>
+description:        Please see the README on GitHub at <https://github.com/VigneshN1997/codenames-haskell#readme>
 
 dependencies:
 - base >= 4.7 && < 5
@@ -43,7 +43,7 @@ library:
   source-dirs: src
 
 executables:
-  minesweeper-haskell-exe:
+  codenames-haskell-exe:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -51,10 +51,10 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - minesweeper-haskell
+    - codenames-haskell
 
 tests:
-  minesweeper-haskell-test:
+  codenames-haskell-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
@@ -62,4 +62,4 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
-    - minesweeper-haskell
+    - codenames-haskell
