@@ -7,10 +7,12 @@ module Game
   , CardColor(..)
   , Coord(..)
   , createPlayerGrid
+  , moveCursor
+  , selectCard
 
 ) where
 
-
+import Lens.Micro (ix, (%~), (&))
 
 
 type RIdx = Int
@@ -56,11 +58,42 @@ data PlayerBoard = PlayBoard
                     } deriving (Show)
 
 data Direction
-  = North
-  | South
-  | East
-  | West
+  = UpD
+  | DownD
+  | LeftD
+  | RightD
   deriving (Show)
+
+wrapAroundCursor :: Int -> Int -> Int
+wrapAroundCursor val n
+    | val >= n = val - n
+    | val < 0 = val + n
+    | otherwise = val
+
+moveCursor :: Direction -> PlayerBoard -> PlayerBoard
+moveCursor direction game = game {cursor = cur}
+                                where
+                                    (Loc r c) = cursor game
+                                    cur = case direction of
+                                            UpD -> Loc (wrapAroundCursor (r-1) gridSize) c
+                                            DownD -> Loc (wrapAroundCursor (r+1) gridSize) c
+                                            LeftD -> Loc r (wrapAroundCursor (c-1) gridSize)
+                                            RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
+
+
+updateCard :: (PlayerCell -> PlayerCell) -> PlayerBoard -> PlayerBoard
+updateCard updateFn pb = pb { plgrid = plgrid pb & ix x . ix y %~ updateFn }
+  where (Loc x y) = cursor pb
+
+
+selectCard :: PlayerBoard -> PlayerBoard
+selectCard pb = updateCard updateFn pb
+    where
+        updateFn :: PlayerCell -> PlayerCell
+        updateFn cell = case cell of
+                            PCell l w True c -> PCell l w True c
+                            PCell l w False c -> PCell l w True c
+
 
 -- https://stackoverflow.com/questions/4597820/does-haskell-have-list-slices-i-e-python
 slice :: Int -> Int -> [a] -> [a]

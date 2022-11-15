@@ -2,6 +2,7 @@ module Main (main) where
 
 import Game
 
+import Control.Monad (void)
 import Brick
 import qualified Brick.Main as M
 import qualified Graphics.Vty as V
@@ -9,6 +10,7 @@ import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Util as U
+import qualified Brick.Widgets.Core as BW
 
 type Name = String
 
@@ -39,14 +41,14 @@ cursorBorderStyle =
                    }
 
 attributes :: AttrMap
-attributes = attrMap V.defAttr
-  [ (stylePlayerCursor    , fg V.green)
-  , (styleRedCell , fg V.red)
-  , (styleBlueCell , fg V.blue)
-  , (styleYellowCell, fg V.yellow)
-  , (styleBlackCell, fg V.brightBlack)
+attributes = attrMap (V.defAttr)
+  [ (stylePlayerCursor, fg V.green)
+  , (styleRedCell , bg V.red)
+  , (styleBlueCell , bg V.blue)
+  , (styleYellowCell, bg V.green)
+  , (styleBlackCell, bg V.brightBlack)
   , (styleUnclickedCell, V.defAttr)
-  , (styleBoard, fg V.magenta)
+  , (styleBoard, V.defAttr)
   ]
 
 getColorBgStyle :: CardColor -> AttrName
@@ -56,13 +58,13 @@ getColorBgStyle Black = styleBlackCell
 getColorBgStyle Yellow = styleYellowCell
 
 getClickedCursorStyle :: String -> CardColor -> Widget ()
-getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ str word
+getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 getUnclickedCursorStyle :: String -> CardColor -> Widget ()
 getUnclickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter $ padAll 1 $ withAttr styleUnclickedCell $ str word
 
 getClickedNormalStyle :: String -> CardColor -> Widget ()
-getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ str word
+getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 
 getUnclickedNormalStyle ::  String -> CardColor -> Widget ()
@@ -84,10 +86,10 @@ drawGrid pb = withBorderStyle BS.unicodeBold
     where
         currCursor = cursor pb
         rows = [hBox $ (cardsInRow r) | r <- (plgrid pb)]
-        cardsInRow row = [hLimit 20 $ (drawPlayerCard pcard currCursor) | pcard <- row]
+        cardsInRow row = [vLimit 40 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
-drawUI :: PlayerBoard -> Widget ()
-drawUI pb = drawGrid pb
+drawUI :: PlayerBoard -> [Widget ()]
+drawUI pb = [drawGrid pb]
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
@@ -105,7 +107,39 @@ pb1 = PlayBoard
             plgrid = g
         }
 
+handleEvent pb (VtyEvent (V.EvKey key [])) =
+  continue $ case key of
+    V.KUp    -> moveCursor UpD pb
+    V.KDown  -> moveCursor DownD pb
+    V.KLeft  -> moveCursor LeftD pb
+    V.KRight -> moveCursor RightD pb
+    V.KEnter -> selectCard pb
+    _        -> pb
+
+-- handleEvent :: PlayerBoard -> BrickEvent () e -> EventM () (Next PlayerBoard)
+-- handleEvent pb (VtyEvent (V.EvKey key [V.MCtrl]))  = 
+--     case key of
+--         -- Quit
+--         V.KChar 'q' -> halt pb
+--         _           ->  continue pb
+
+
+
+handleEvent pb _ = undefined
+
+data Tick = Int
+
+app :: App PlayerBoard e ()
+app = App { appDraw = drawUI
+          , appChooseCursor = const . const Nothing
+          , appHandleEvent = handleEvent
+          , appStartEvent = return
+          , appAttrMap = const attributes
+          }
+
+-- main :: IO ()
+-- main = M.simpleMain (drawUI pb1)
 main :: IO ()
-main = M.simpleMain (drawUI pb1)
+main = void $ M.defaultMain app pb
 
 
