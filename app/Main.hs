@@ -58,17 +58,17 @@ getColorBgStyle Black = styleBlackCell
 getColorBgStyle Yellow = styleYellowCell
 
 getClickedCursorStyle :: String -> CardColor -> Widget ()
-getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
+getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 getUnclickedCursorStyle :: String -> CardColor -> Widget ()
-getUnclickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter $ padAll 1 $ withAttr styleUnclickedCell $ str word
+getUnclickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 getClickedNormalStyle :: String -> CardColor -> Widget ()
-getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ padAll 1 $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
+getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 
 getUnclickedNormalStyle ::  String -> CardColor -> Widget ()
-getUnclickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ padAll 1 $ withAttr styleUnclickedCell $ str word
+getUnclickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 drawPlayerCard :: PlayerCell -> Coord -> Widget ()
 drawPlayerCard (PCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
@@ -86,10 +86,28 @@ drawGrid pb = withBorderStyle BS.unicodeBold
     where
         currCursor = cursor pb
         rows = [hBox $ (cardsInRow r) | r <- (plgrid pb)]
-        cardsInRow row = [vLimit 40 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
+        cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
+
+
+renderHint :: String -> Int -> Widget ()
+renderHint hintW hintNumW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str (hintW ++ "," ++ (show hintNumW)))
+
+getRedTeamScoreBoard :: Int -> Widget ()
+getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
+
+
+getBlueTeamScoreBoard :: Int -> Widget ()
+getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue score :" ++ (show score))
+
+renderPlayerTurn :: CardColor -> Widget ()
+renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Team's Turn")
+
+drawPlayerStats :: PlayerBoard -> Widget ()
+drawPlayerStats pb = ((getBlueTeamScoreBoard 4) <=> (getRedTeamScoreBoard 5)) <+> ((padLeft Max (renderHint "Hint" 3)) <=> (padLeft Max (renderPlayerTurn Blue)))
+
 
 drawUI :: PlayerBoard -> [Widget ()]
-drawUI pb = [drawGrid pb]
+drawUI pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]

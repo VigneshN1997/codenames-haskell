@@ -54,7 +54,9 @@ type PlayerGrid = [PlayerRow]
 data PlayerBoard = PlayBoard
                     {
                         cursor :: Coord,
-                        plgrid :: PlayerGrid
+                        plgrid :: PlayerGrid,
+                        pl1score :: Int,
+                        pl2score :: Int 
                     } deriving (Show)
 
 data Direction
@@ -115,7 +117,9 @@ createPlayerGrid wordlis colors = createBoard cellList
             createBoard cls = PlayBoard 
                                 {
                                     cursor = (Loc 0 0),
-                                    plgrid = map (getSlice cls) [0..(gridSize - 1)]
+                                    plgrid = map (getSlice cls) [0..(gridSize - 1)],
+                                    pl1score = 0,
+                                    pl2score = 0
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
