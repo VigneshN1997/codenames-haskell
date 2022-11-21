@@ -1,109 +1,162 @@
+-- module Main where
+
+-- import Network.Socket
+-- import System.IO
+-- import Control.Exception
+-- import Control.Concurrent
+-- import Control.Monad (when)
+-- import Control.Monad.Fix (fix)
+
+-- main :: IO ()
+-- main = do
+--   sock <- socket AF_INET Stream 0
+--   setSocketOption sock ReuseAddr 1
+--   bind sock (SockAddrInet 4242 0x0100007f)
+--   listen sock 2
+--   chan <- newChan
+--   _ <- forkIO $ fix $ \loop -> do
+--     (_, _) <- readChan chan
+--     loop
+--   mainLoop sock chan 0
+
+-- type Msg = (Int, String)
+
+-- mainLoop :: Socket -> Chan Msg -> Int -> IO ()
+-- mainLoop sock chan msgNum = do
+--   conn <- accept sock
+--   forkIO (runConn conn chan msgNum)
+--   mainLoop sock chan $! msgNum + 1
+
+
+-- convertStringToInt :: String -> Int
+-- convertStringToInt s  = read s
+
+-- -- convertIntToString :: Int -> String
+-- -- convertIntToString x = read x
+
+-- sendClue :: String -> IO ()
+-- sendClue = undefined
+
+-- sendLoc :: String -> IO ()
+-- sendLoc = undefined
+
+-- runConn :: (Socket, SockAddr) -> Chan Msg -> Int -> IO ()
+-- runConn (sock, _) chan msgNum = do
+--     let broadcast msg = writeChan chan (msgNum, msg)
+--     hdl <- socketToHandle sock ReadWriteMode
+--     hSetBuffering hdl NoBuffering
+
+--     hPutStrLn hdl "Blue team, clue: Apple 3"
+--     name <- fmap init (hGetLine hdl)
+--     -- broadcast ("--> " ++ name ++ " entered chat.")
+
+--     hPutStrLn hdl ("Welcome, " ++ name  ++ "!")
+
+--     -- commLine <- dupChan chan
+
+--     -- fork off a thread for reading from the duplicated channel
+--     -- reader <- forkIO $ fix $ \loop -> do
+--     --     (nextNum, line) <- readChan commLine
+--     --     when (msgNum /= nextNum) $ hPutStrLn hdl line
+--     --     loop
+
+--     handle (\(SomeException _) -> return ()) $ fix $ \loop -> do
+--         line <- fmap init (hGetLine hdl)
+--         case line of
+--              -- If an exception is caught, send a message and break the loop
+--              "quit" -> hPutStrLn hdl "Bye!"
+--              -- else, continue looping.
+--              _      -> broadcast (name ++ ": " ++ line) >> loop
+
+--     -- killThread reader                      -- kill after the loop ends
+--     broadcast ("<-- " ++ name ++ " left.") -- make a final broadcast
+--     hClose hdl                             -- close the handle
+
+
+
+
+
 module Main where
 
-import Network.Socket
-import System.IO
-import Control.Exception
-import Control.Concurrent
-import Control.Monad (when)
+import Control.Concurrent       
+import Control.Monad             
+-- import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Char8 as C
+import Network.Socket 
+import Network.Socket.ByteString (recv, sendAll)
+import System.IO()
 import Control.Monad.Fix (fix)
+
+-- import System.Directory
 
 main :: IO ()
 main = do
-  sock <- socket AF_INET Stream 0
-  setSocketOption sock ReuseAddr 1
-  bind sock (SockAddrInet 4242 0x0100007f)
-  listen sock 2
+  addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
+  let serveraddr = head addrinfos
+  sock <- socket (addrFamily serveraddr) Stream defaultProtocol
+  bind sock (addrAddress serveraddr)
+  listen sock 5
   chan <- newChan
-  _ <- forkIO $ fix $ \loop -> do
-    (_, _) <- readChan chan
-    loop
-  mainLoop sock chan 0
+  runTCPEchoServerForever sock chan 0
 
-type Msg = (Int, String)
+runTCPEchoServerForever :: (Eq a, Num a) => Socket -> Chan (a, String) -> a -> IO b
+runTCPEchoServerForever sock chan msgNum = do 
+  (conn, _)     <- accept sock
+  -- files_list    <- getFileList
+  -- sendAll conn (C.pack files_list)
+  -- threadDelay 100000
+  _ <- forkIO (rrLoop conn chan msgNum) -- conn and sock are same
+  runTCPEchoServerForever sock chan $! msgNum + 1
 
-mainLoop :: Socket -> Chan Msg -> Int -> IO ()
-mainLoop sock chan msgNum = do
-  conn <- accept sock
-  forkIO (runConn conn chan msgNum)
-  mainLoop sock chan $! msgNum + 1
+-- getFileList :: IO String
+-- getFileList = do
+--   setCurrentDirectory "shared_files"
+--   _cd <- getCurrentDirectory
+--   _file <- getDirectoryContents _cd
+--   onlyFiles <- filterM doesFileExist _file
+--   let mes = convertListToString onlyFiles ""
+--   setCurrentDirectory ".."
+--   return mes
 
-runConn :: (Socket, SockAddr) -> Chan Msg -> Int -> IO ()
-runConn (sock, _) chan msgNum = do
-    let broadcast msg = writeChan chan (msgNum, msg)
-    hdl <- socketToHandle sock ReadWriteMode
-    hSetBuffering hdl NoBuffering
 
-    hPutStrLn hdl "Hi, what's your name?"
-    name <- fmap init (hGetLine hdl)
-    broadcast ("--> " ++ name ++ " entered chat.")
-    hPutStrLn hdl ("Welcome, " ++ name ++ "!")
+convertListToString :: [FilePath] -> String -> String
+convertListToString [] x = init x
+convertListToString (n:ns) x = convertListToString ns (x ++ n ++ ",")
 
-    commLine <- dupChan chan
+rrLoop :: Eq a => Socket -> Chan (a, String) -> a -> IO ()
+rrLoop sock chan msgNum = do
+  let broadcast msg = writeChan chan (msgNum, msg)
+  
+  broadcast "--> AAAAA new person entered chat"
+  print "new person entered chat"
 
-    -- fork off a thread for reading from the duplicated channel
-    reader <- forkIO $ fix $ \loop -> do
-        (nextNum, line) <- readChan commLine
-        when (msgNum /= nextNum) $ hPutStrLn hdl line
+  -- commLine <- dupChan chan
+
+  reader <- forkIO $ fix $ \loop -> do
+        print "AAAAAA"
+        sendAll sock (C.pack "CHENNNAAAAAAAAAAA!")
+        -- (nextNum, mes) <- readChan commLine
+        -- print "BBBBBBB"
+        -- when (msgNum /= nextNum) $ sendAll sock (C.pack mes)
+        -- print "CCCCCC"
+        threadDelay 5000000
         loop
 
-    handle (\(SomeException _) -> return ()) $ fix $ \loop -> do
-        line <- fmap init (hGetLine hdl)
-        case line of
-             -- If an exception is caught, send a message and break the loop
-             "quit" -> hPutStrLn hdl "Bye!"
-             -- else, continue looping.
-             _      -> broadcast (name ++ ": " ++ line) >> loop
+  writer sock broadcast
+  killThread reader
 
-    killThread reader                      -- kill after the loop ends
-    broadcast ("<-- " ++ name ++ " left.") -- make a final broadcast
-    hClose hdl                             -- close the handle
-
-
-
-
-
-
--- Echo server program
--- module Main (main) where
-
--- import Control.Concurrent (forkFinally)
--- import qualified Control.Exception as E
--- import Control.Monad (unless, forever, void)
--- import qualified Data.ByteString as S
--- import Network.Socket
--- import Network.Socket.ByteString (recv, sendAll)
-
--- main :: IO ()
--- main = runTCPServer Nothing "3000" talk
---   where
---     talk s = do
---         msg <- recv s 1024
---         unless (S.null msg) $ do
---           sendAll s msg
---           talk s
-
--- -- from the "network-run" package.
--- runTCPServer :: Maybe HostName -> ServiceName -> (Socket -> IO a) -> IO a
--- runTCPServer mhost port server = withSocketsDo $ do
---     addr <- resolve
---     E.bracket (open addr) close loop
---   where
---     resolve = do
---         let hints = defaultHints {
---                 addrFlags = [AI_PASSIVE]
---               , addrSocketType = Stream
---               }
---         head <$> getAddrInfo (Just hints) mhost (Just port)
---     open addr = E.bracketOnError (openSocket addr) close $ \sock -> do
---         setSocketOption sock ReuseAddr 1
---         withFdSocket sock setCloseOnExecIfNeeded
---         bind sock $ addrAddress addr
---         listen sock 1024
---         return sock
---     loop sock = forever $ E.bracketOnError (accept sock) (close . fst)
---         $ \(conn, _peer) -> void $
---             -- 'forkFinally' alone is unlikely to fail thus leaking @conn@,
---             -- but 'E.bracketOnError' above will be necessary if some
---             -- non-atomic setups (e.g. spawning a subprocess to handle
---             -- @conn@) before proper cleanup of @conn@ is your case
---             forkFinally (server conn) (const $ gracefulClose conn 5000)
+writer :: Socket -> ([Char] -> IO a) -> IO ()
+writer sock broadcast = do
+                        msg <- recv sock 1024
+                        let s = C.unpack msg
+                        case s of
+                          "quit" -> do
+                                      print "TCP client closing"
+                                      threadDelay 100000
+                                      close sock
+                          ""     -> return ()
+                          _      -> do
+                                      broadcast s
+                                      print ("TCP server received: " ++ s)
+                                      threadDelay 100000
+                                      writer sock broadcast
