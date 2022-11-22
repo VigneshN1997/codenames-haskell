@@ -46,6 +46,7 @@ library
     , microlens
     , network
     , text
+    , vector
     , vty
   default-language: Haskell2010
 
@@ -64,6 +65,7 @@ executable codenames-haskell-exe
     , microlens
     , network
     , text
+    , vector
     , vty
   default-language: Haskell2010
 
@@ -84,5 +86,6 @@ test-suite codenames-haskell-test
     , microlens
     , network
     , text
+    , vector
     , vty
   default-language: Haskell2010

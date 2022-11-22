@@ -27,6 +27,7 @@ dependencies:
 - text
 - vty
 - network
+- vector
 
 ghc-options:
 - -Wall
