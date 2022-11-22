@@ -2,13 +2,17 @@ module Game
 ( PlayerCell(..)
   , PlayerRow
   , PlayerGrid
-  , PlayerBoard(..)
+--   , PlayerBoard(..)
+  , PlayerGameState(..)
   , Direction(..)
   , CardColor(..)
   , Coord(..)
+  , SpyHint(..)
   , createPlayerGrid
   , moveCursor
   , selectCard
+  , updateCurrentTurnsAndScore
+--   , colorPlayerCell
 
 ) where
 
@@ -20,7 +24,6 @@ type CIdx = Int
 type Idx = Int
 type Clicked = Bool
 type WCount = Int
-
 
 data CardColor = Red | Blue | Black | Yellow
     deriving (Eq, Show)
@@ -51,13 +54,13 @@ data PlayerCell = PCell Coord String Clicked CardColor
 type PlayerRow = [PlayerCell]
 type PlayerGrid = [PlayerRow]
 
-data PlayerBoard = PlayBoard
-                    {
-                        cursor :: Coord,
-                        plgrid :: PlayerGrid,
-                        pl1score :: Int,
-                        pl2score :: Int 
-                    } deriving (Show)
+-- data PlayerBoard = PlayBoard
+--                     {
+--                         cursor :: Coord,
+--                         plgrid :: PlayerGrid,
+--                         pl1score :: Int,
+--                         pl2score :: Int 
+--                     } deriving (Show)
 
 data Direction
   = UpD
@@ -72,10 +75,10 @@ wrapAroundCursor val n
     | val < 0 = val + n
     | otherwise = val
 
-moveCursor :: Direction -> PlayerBoard -> PlayerBoard
-moveCursor direction game = game {cursor = cur}
+moveCursor :: Direction -> PlayerGameState -> PlayerGameState
+moveCursor direction game = game {playerCursor = cur}
                                 where
-                                    (Loc r c) = cursor game
+                                    (Loc r c) = playerCursor game
                                     cur = case direction of
                                             UpD -> Loc (wrapAroundCursor (r-1) gridSize) c
                                             DownD -> Loc (wrapAroundCursor (r+1) gridSize) c
@@ -83,12 +86,12 @@ moveCursor direction game = game {cursor = cur}
                                             RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
 
 
-updateCard :: (PlayerCell -> PlayerCell) -> PlayerBoard -> PlayerBoard
-updateCard updateFn pb = pb { plgrid = plgrid pb & ix x . ix y %~ updateFn }
-  where (Loc x y) = cursor pb
+updateCard :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
+updateCard updateFn pb = pb { playerGrid = playerGrid pb & ix x . ix y %~ updateFn }
+  where (Loc x y) = playerCursor pb
 
 
-selectCard :: PlayerBoard -> PlayerBoard
+selectCard :: PlayerGameState -> PlayerGameState
 selectCard pb = updateCard updateFn pb
     where
         updateFn :: PlayerCell -> PlayerCell
@@ -108,18 +111,23 @@ createPlayerCard (word, color, idx) = PCell (Loc (idx `div` gridSize) (idx `mod`
 createSpyCard :: (CardColor, Idx) -> SpyCell
 createSpyCard (color, idx) = SCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) False color
 
-createPlayerGrid :: [String] -> [CardColor] -> PlayerBoard
+createPlayerGrid :: [String] -> [CardColor] -> PlayerGameState
 createPlayerGrid wordlis colors = createBoard cellList
         where
             tupleList = zip3 wordlis colors [0..((gridSize*gridSize) - 1)]
             cellList = map createPlayerCard tupleList
-            createBoard :: [PlayerCell] -> PlayerBoard 
-            createBoard cls = PlayBoard 
+            createBoard :: [PlayerCell] -> PlayerGameState 
+            createBoard cls = PlayerGameState 
                                 {
-                                    cursor = (Loc 0 0),
-                                    plgrid = map (getSlice cls) [0..(gridSize - 1)],
-                                    pl1score = 0,
-                                    pl2score = 0
+                                    playerCursor = (Loc 0 0),
+                                    playerGrid = map (getSlice cls) [0..(gridSize - 1)],
+                                    redTeamScore = 0,
+                                    blueTeamScore = 0,
+                                    wordList = egwordList,
+                                    cardColor = downloadedColorList,
+                                    teamTurn = Red,
+                                    spyMastersTurn = False,
+                                    spyHint = SHint "Temperature" 2
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -140,9 +148,84 @@ createSpyGrid colors = createBoard cellList
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
-wordList :: [String]
-wordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
+egwordList :: [String]
+egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
 
 gridSize::Int
 gridSize = 5
+
+-- //////////////Game State/////////////////
+
+data PlayerGameState = PlayerGameState {
+    playerGrid    :: PlayerGrid,
+    wordList      :: [String],
+    cardColor     :: [CardColor],
+    redTeamScore  :: Int,
+    blueTeamScore :: Int,
+    teamTurn      :: CardColor,
+    spyHint       :: SpyHint,
+    playerCursor  :: Coord,
+    spyMastersTurn :: Bool
+}
+
+-- utility functions
+-- updatePlayerCell :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
+-- updatePlayerCell updatePcellFn game = game {playerGrid = playerGrid game & ix y . ix x %~ updatePcellFn }
+--   where (Loc x y) = playerCursor game
+
+getCardColor :: PlayerGameState -> Coord -> CardColor
+getCardColor game pCursor = cardColor
+    where (Loc x y) = pCursor
+          PCell _ _ _ cardColor = playerGrid game !! x !! y 
+
+
+updateTeam :: CardColor -> CardColor -> CardColor
+updateTeam Red cardColor = if cardColor == Red then Red else Blue
+updateTeam Blue cardColor = if cardColor == Blue then Blue else Red
+
+updateTeamScore :: CardColor -> Int -> CardColor -> Int
+updateTeamScore teamColor score cardColor = if cardColor == teamColor then score+1 else score
+
+updateSpyMastersTurn :: CardColor -> CardColor -> Bool
+updateSpyMastersTurn Red cardColor = if cardColor == Red then False else True
+updateSpyMastersTurn Blue cardColor = if cardColor == Blue then False else True
+
+-- functions that should run on clicks from the player
+
+-- colorPlayerCell :: PlayerGameState -> PlayerGameState
+-- colorPlayerCell game = updatePlayerCell updatePcellFn game
+--     where
+--         updatePcellFn :: PlayerCell -> PlayerCell
+--         updatePcellFn (PCell coord str clicked col) = (PCell coord str True col)
+
+updateCurrentTurnsAndScore :: PlayerGameState -> PlayerGameState
+updateCurrentTurnsAndScore game = game {teamTurn = updateTeam (teamColor) (cardColor),
+                                    -- redTeamScore = updateTeamScore (teamColor) (redScore) (cardColor),
+                                    blueTeamScore = updateTeamScore (teamColor) (blueScore) (cardColor),
+                                    spyMastersTurn = updateSpyMastersTurn (teamColor) cardColor
+                                    }
+                                where cardColor = getCardColor game (playerCursor game)
+                                      teamColor = teamTurn game
+                                      redScore = redTeamScore game
+                                      blueScore = blueTeamScore game
+                            
+
+
+-- functions that should run after new hints from the spy master
+updateSpyHint :: PlayerGameState -> PlayerGameState
+updateSpyHint game = game 
+
+
+
+
+
+
+        
+
+
+                   
+
+
+
+
 

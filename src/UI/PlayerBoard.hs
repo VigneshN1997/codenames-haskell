@@ -7,14 +7,11 @@ import Game
 import Codenames
 import UI.Styles
 
-import Control.Monad (void)
 import Brick
-import qualified Brick.Main as M
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
-import qualified Brick.Util as U
 import qualified Brick.Widgets.Core as BW
 
 
@@ -28,14 +25,14 @@ getClickedCursorStyle :: String -> CardColor -> Widget Name
 getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 getUnclickedCursorStyle :: String -> CardColor -> Widget Name
-getUnclickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
+getUnclickedCursorStyle word _ = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 getClickedNormalStyle :: String -> CardColor -> Widget Name
 getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 
 getUnclickedNormalStyle ::  String -> CardColor -> Widget Name
-getUnclickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
+getUnclickedNormalStyle word _ = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 drawPlayerCard :: PlayerCell -> Coord -> Widget Name
 drawPlayerCard (PCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
@@ -46,13 +43,13 @@ drawPlayerCard (PCell (Loc cardx cardy) word False color) (Loc cursorx cursory) 
                                                                                     then getUnclickedCursorStyle word color
                                                                                     else getUnclickedNormalStyle word color
 
-drawGrid :: PlayerBoard -> Widget Name
+drawGrid :: PlayerGameState -> Widget Name
 drawGrid pb = withBorderStyle BS.unicodeBold
     $ B.borderWithLabel ((withAttr styleBoard) $ str "Codenames Player View")
     $ vBox rows
     where
-        currCursor = cursor pb
-        rows = [hBox $ (cardsInRow r) | r <- (plgrid pb)]
+        currCursor = playerCursor pb
+        rows = [hBox $ (cardsInRow r) | r <- (playerGrid pb)]
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
 
@@ -62,18 +59,17 @@ renderHint hintW hintNumW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBo
 getRedTeamScoreBoard :: Int -> Widget Name
 getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
 
-
 getBlueTeamScoreBoard :: Int -> Widget Name
 getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue score :" ++ (show score))
 
 renderPlayerTurn :: CardColor -> Widget Name
 renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Team's Turn")
 
-drawPlayerStats :: PlayerBoard -> Widget Name
-drawPlayerStats pb = ((getBlueTeamScoreBoard 4) <=> (getRedTeamScoreBoard 5)) <+> ((padLeft Max (renderHint "Hint" 3)) <=> (padLeft Max (renderPlayerTurn Blue)))
+drawPlayerStats :: PlayerGameState -> Widget Name
+drawPlayerStats pb = ((getBlueTeamScoreBoard (blueTeamScore pb)) <=> (getRedTeamScoreBoard (redTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (teamTurn pb))))
+    where SHint hintWord hintNum = spyHint pb
 
-
-drawPlayerBoard :: PlayerBoard -> [Widget Name]
+drawPlayerBoard :: PlayerGameState -> [Widget Name]
 drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
 
 
@@ -85,13 +81,14 @@ drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
 --             plgrid = g
 --         }
 
+handleEvent :: Codenames -> BrickEvent n1 e -> EventM n2 (Next Codenames)
 handleEvent (PlayerView pb) (VtyEvent (V.EvKey key [])) =
   continue $ case key of
     V.KUp    -> PlayerView (moveCursor UpD pb)
     V.KDown  -> PlayerView (moveCursor DownD pb)
     V.KLeft  -> PlayerView (moveCursor LeftD pb)
     V.KRight -> PlayerView (moveCursor RightD pb)
-    V.KEnter -> PlayerView (selectCard pb)
+    V.KEnter -> PlayerView (updateCurrentTurnsAndScore (selectCard pb))
     _        -> PlayerView pb
 
 -- handleEvent :: PlayerBoard -> BrickEvent () e -> EventM () (Next PlayerBoard)
@@ -103,4 +100,4 @@ handleEvent (PlayerView pb) (VtyEvent (V.EvKey key [])) =
 
 
 
-handleEvent pb _ = undefined
+handleEvent _ _ = undefined
