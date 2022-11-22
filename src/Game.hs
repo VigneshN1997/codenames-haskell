@@ -11,7 +11,8 @@ module Game
   , createPlayerGrid
   , moveCursor
   , selectCard
-  , updateCurrentTurnsAndScore
+  , updateCurrentTurnsAndScore,
+  updatePlayerGame
 --   , colorPlayerCell
 
 ) where
@@ -45,6 +46,7 @@ data SpymasterBoard = SpyBoard
                         } deriving (Show)
 
 data SpyHint = SHint String WCount
+                deriving (Show)
 
 
 -- data TeamDetails
@@ -166,29 +168,36 @@ data PlayerGameState = PlayerGameState {
     spyHint       :: SpyHint,
     playerCursor  :: Coord,
     spyMastersTurn :: Bool
-}
+} deriving (Show)
 
 -- utility functions
 -- updatePlayerCell :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
 -- updatePlayerCell updatePcellFn game = game {playerGrid = playerGrid game & ix y . ix x %~ updatePcellFn }
 --   where (Loc x y) = playerCursor game
 
-getCardColor :: PlayerGameState -> Coord -> CardColor
-getCardColor game pCursor = cardColor
-    where (Loc x y) = pCursor
-          PCell _ _ _ cardColor = playerGrid game !! x !! y 
+getCardColor :: PlayerGameState -> CardColor
+getCardColor game = cColor
+    where (Loc x y) = playerCursor game
+          PCell _ _ _ cColor = playerGrid game !! x !! y
 
+isCardClicked :: PlayerCell -> Bool
+isCardClicked (PCell _ _ isClicked _) = isClicked
 
 updateTeam :: CardColor -> CardColor -> CardColor
-updateTeam Red cardColor = if cardColor == Red then Red else Blue
-updateTeam Blue cardColor = if cardColor == Blue then Blue else Red
+updateTeam Red cColor = if cColor == Red then Red else Blue
+updateTeam Blue cColor = if cColor == Blue then Blue else Red
 
-updateTeamScore :: CardColor -> Int -> CardColor -> Int
-updateTeamScore teamColor score cardColor = if cardColor == teamColor then score+1 else score
+updateRedTeamScore :: CardColor -> Int -> Int
+updateRedTeamScore Red score  = score + 1
+updateRedTeamScore _ score = score
+
+updateBlueTeamScore :: CardColor -> Int -> Int
+updateBlueTeamScore Blue score  = score + 1
+updateBlueTeamScore _ score = score
 
 updateSpyMastersTurn :: CardColor -> CardColor -> Bool
-updateSpyMastersTurn Red cardColor = if cardColor == Red then False else True
-updateSpyMastersTurn Blue cardColor = if cardColor == Blue then False else True
+updateSpyMastersTurn Red cColor = if cColor == Red then False else True
+updateSpyMastersTurn Blue cColor = if cColor == Blue then False else True
 
 -- functions that should run on clicks from the player
 
@@ -199,21 +208,29 @@ updateSpyMastersTurn Blue cardColor = if cardColor == Blue then False else True
 --         updatePcellFn (PCell coord str clicked col) = (PCell coord str True col)
 
 updateCurrentTurnsAndScore :: PlayerGameState -> PlayerGameState
-updateCurrentTurnsAndScore game = game {teamTurn = updateTeam (teamColor) (cardColor),
-                                    -- redTeamScore = updateTeamScore (teamColor) (redScore) (cardColor),
-                                    blueTeamScore = updateTeamScore (teamColor) (blueScore) (cardColor),
-                                    spyMastersTurn = updateSpyMastersTurn (teamColor) cardColor
+updateCurrentTurnsAndScore game = game {teamTurn = updateTeam (teamColor) (cColor),
+                                    redTeamScore = updateRedTeamScore cColor redScore ,
+                                    blueTeamScore = updateBlueTeamScore cColor blueScore,
+                                    spyMastersTurn = updateSpyMastersTurn (teamColor) cColor
                                     }
-                                where cardColor = getCardColor game (playerCursor game)
+                                where cColor = getCardColor game
                                       teamColor = teamTurn game
                                       redScore = redTeamScore game
                                       blueScore = blueTeamScore game
                             
 
+updatePlayerGame:: PlayerGameState -> PlayerGameState
+updatePlayerGame game = if (isCardClicked currCard)
+                        then game
+                        else updateCurrentTurnsAndScore (selectCard game)
+                        
+                        where
+                            (Loc x y) = playerCursor game
+                            currCard = playerGrid game !! x !! y
 
 -- functions that should run after new hints from the spy master
 updateSpyHint :: PlayerGameState -> PlayerGameState
-updateSpyHint game = game 
+updateSpyHint game = game
 
 
 

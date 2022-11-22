@@ -88,7 +88,7 @@ handleEvent (PlayerView pb) (VtyEvent (V.EvKey key [])) =
     V.KDown  -> PlayerView (moveCursor DownD pb)
     V.KLeft  -> PlayerView (moveCursor LeftD pb)
     V.KRight -> PlayerView (moveCursor RightD pb)
-    V.KEnter -> PlayerView (updateCurrentTurnsAndScore (selectCard pb))
+    V.KEnter -> PlayerView (updatePlayerGame pb)
     _        -> PlayerView pb
 
 -- handleEvent :: PlayerBoard -> BrickEvent () e -> EventM () (Next PlayerBoard)

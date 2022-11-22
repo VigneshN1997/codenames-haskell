@@ -8,7 +8,6 @@ module Codenames (
 
 import Game
 
-import qualified Data.Text as T
 import qualified Brick.Widgets.List as L
 import qualified Data.Vector as Vec
 
