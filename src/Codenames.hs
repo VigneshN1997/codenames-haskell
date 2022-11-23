@@ -19,6 +19,7 @@ type MenuList = L.List Name String
 data Codenames
   =   MainMenu MenuList
     | PlayerView PlayerGameState
+    | SpyView SpyGameState
 
 
 getMainMenu :: Codenames
@@ -27,7 +28,6 @@ getMainMenu = MainMenu menuOptions
 -- | Creates an initial 'Game' starting at the main menu
 initialGame :: Codenames
 initialGame = PlayerView pb
-
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
