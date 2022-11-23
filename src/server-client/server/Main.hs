@@ -108,21 +108,6 @@ runTCPEchoServerForever sock chan msgNum = do
   _ <- forkIO (rrLoop conn chan msgNum) -- conn and sock are same
   runTCPEchoServerForever sock chan $! msgNum + 1
 
--- getFileList :: IO String
--- getFileList = do
---   setCurrentDirectory "shared_files"
---   _cd <- getCurrentDirectory
---   _file <- getDirectoryContents _cd
---   onlyFiles <- filterM doesFileExist _file
---   let mes = convertListToString onlyFiles ""
---   setCurrentDirectory ".."
---   return mes
-
-
-convertListToString :: [FilePath] -> String -> String
-convertListToString [] x = init x
-convertListToString (n:ns) x = convertListToString ns (x ++ n ++ ",")
-
 rrLoop :: Eq a => Socket -> Chan (a, String) -> a -> IO ()
 rrLoop sock chan msgNum = do
   let broadcast msg = writeChan chan (msgNum, msg)
