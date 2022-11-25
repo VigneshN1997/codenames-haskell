@@ -27,7 +27,8 @@ getMainMenu = MainMenu menuOptions
 
 -- | Creates an initial 'Game' starting at the main menu
 initialGame :: Codenames
-initialGame = PlayerView pb
+-- initialGame = PlayerView pb
+initialGame = SpyView sb
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
@@ -35,7 +36,10 @@ egwordList :: [String]
 egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
 
 pb :: PlayerGameState
-pb = createPlayerGrid egwordList downloadedColorList
+pb = createPlayerState egwordList downloadedColorList
+
+sb :: SpyGameState
+sb = createSpyState egwordList downloadedColorList
 
 
 menuOptions :: L.GenericList Name Vec.Vector String

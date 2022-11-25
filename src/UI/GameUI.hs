@@ -5,6 +5,7 @@ module UI.GameUI
 
 import Codenames
 import UI.PlayerBoard
+import UI.SpyBoard
 import UI.Styles
 
 import Brick
@@ -35,6 +36,7 @@ drawGame :: Codenames -> [Widget Name]
 drawGame g = case g of
     MainMenu menu -> drawList menu
     PlayerView pb -> drawPlayerBoard pb
+    SpyView sb    -> drawSpyBoard sb
 
 
 
@@ -44,7 +46,7 @@ localApp =
   M.App
     { M.appDraw = drawGame,
       M.appChooseCursor = const . const Nothing,
-      M.appHandleEvent = handleEvent,
+      M.appHandleEvent = handleSEvent,
       M.appStartEvent = return,
       M.appAttrMap = const attributes
     }

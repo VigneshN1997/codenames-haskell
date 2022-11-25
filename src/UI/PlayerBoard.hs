@@ -48,7 +48,7 @@ drawGrid pb = withBorderStyle BS.unicodeBold
     $ B.borderWithLabel ((withAttr styleBoard) $ str "Codenames Player View")
     $ vBox rows
     where
-        currCursor = playerCursor pb
+        currCursor = pPlayerCursor pb
         rows = [hBox $ (cardsInRow r) | r <- (playerGrid pb)]
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
@@ -66,8 +66,8 @@ renderPlayerTurn :: CardColor -> Widget Name
 renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Team's Turn")
 
 drawPlayerStats :: PlayerGameState -> Widget Name
-drawPlayerStats pb = ((getBlueTeamScoreBoard (blueTeamScore pb)) <=> (getRedTeamScoreBoard (redTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (teamTurn pb))))
-    where SHint hintWord hintNum = spyHint pb
+drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
+    where SHint hintWord hintNum = pSpyHint pb
 
 drawPlayerBoard :: PlayerGameState -> [Widget Name]
 drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
@@ -88,7 +88,7 @@ handleEvent (PlayerView pb) (VtyEvent (V.EvKey key [])) =
     V.KDown  -> PlayerView (moveCursor DownD pb)
     V.KLeft  -> PlayerView (moveCursor LeftD pb)
     V.KRight -> PlayerView (moveCursor RightD pb)
-    V.KEnter -> PlayerView (updatePlayerGame pb)
+    V.KEnter -> PlayerView (updateGame pb)
     _        -> PlayerView pb
 
 -- handleEvent :: PlayerBoard -> BrickEvent () e -> EventM () (Next PlayerBoard)
