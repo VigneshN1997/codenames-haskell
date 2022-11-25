@@ -7,5 +7,5 @@ import qualified Brick.Main as M
 
 main :: IO ()
 main = do
-  _ <- M.defaultMain localApp initialGame
+  _ <- M.defaultMain localApp getMainMenu
   return ()

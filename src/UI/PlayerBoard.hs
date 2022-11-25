@@ -53,7 +53,7 @@ drawGrid pb = withBorderStyle BS.unicodeBold
     $ B.borderWithLabel ((withAttr styleBoard) $ str "Codenames Player View")
     $ vBox rows
     where
-        currCursor = playerCursor pb
+        currCursor = pPlayerCursor pb
         rows = [hBox $ (cardsInRow r) | r <- (playerGrid pb)]
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
@@ -75,8 +75,8 @@ renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicod
 
 -- | Render the player side stats for each team
 drawPlayerStats :: PlayerGameState -> Widget Name
-drawPlayerStats pb = ((getBlueTeamScoreBoard (blueTeamScore pb)) <=> (getRedTeamScoreBoard (redTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (teamTurn pb))))
-    where SHint hintWord hintNum = spyHint pb
+drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
+    where SHint hintWord hintNum = pSpyHint pb
 
 -- | Render the player side view
 drawPlayerBoard :: PlayerGameState -> [Widget Name]
@@ -91,6 +91,6 @@ handleKeyPlayer playerGameState (VtyEvent (V.EvKey key [])) =
     V.KDown  -> PlayerView (moveCursor DownD playerGameState)
     V.KLeft  -> PlayerView (moveCursor LeftD playerGameState)
     V.KRight -> PlayerView (moveCursor RightD playerGameState)
-    V.KEnter -> PlayerView (updatePlayerGame playerGameState)
+    V.KEnter -> PlayerView (updateGame playerGameState)
     _        -> PlayerView playerGameState
-handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)
+-- handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)

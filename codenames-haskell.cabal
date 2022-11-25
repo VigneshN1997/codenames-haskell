@@ -29,6 +29,7 @@ library
       Game
       UI.GameUI
       UI.PlayerBoard
+      UI.SpyBoard
       UI.Styles
   other-modules:
       Paths_codenames_haskell
