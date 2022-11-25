@@ -25,12 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      BoardGenerator
       Codenames
       Game
-      Lib
-      Types
-      UI
       UI.GameUI
       UI.PlayerBoard
       UI.Styles

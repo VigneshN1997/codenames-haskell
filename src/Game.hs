@@ -231,18 +231,3 @@ updatePlayerGame game = if (isCardClicked currCard)
 -- functions that should run after new hints from the spy master
 updateSpyHint :: PlayerGameState -> PlayerGameState
 updateSpyHint game = game
-
-
-
-
-
-
-        
-
-
-                   
-
-
-
-
-

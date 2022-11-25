@@ -1,5 +1,5 @@
 module Codenames (
-    initialGame,
+    initialGamePlayer,
     getMainMenu,
     Codenames(..),
     Name(..),
@@ -25,8 +25,8 @@ getMainMenu :: Codenames
 getMainMenu = MainMenu menuOptions
 
 -- | Creates an initial 'Game' starting at the main menu
-initialGame :: Codenames
-initialGame = PlayerView pb
+initialGamePlayer :: Codenames
+initialGamePlayer = PlayerView pb
 
 
 downloadedColorList :: [CardColor]
