@@ -70,7 +70,6 @@ test-suite codenames-haskell-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Test
       Paths_codenames_haskell
   hs-source-dirs:
       test
