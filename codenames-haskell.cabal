@@ -47,8 +47,9 @@ library
   default-language: Haskell2010
 
 executable chat-client-exe
-  main-is: Main.hs
+  main-is: simplified-client.hs
   other-modules:
+      Main
       Paths_codenames_haskell
   hs-source-dirs:
       src/server-client/client
@@ -60,13 +61,15 @@ executable chat-client-exe
     , containers
     , microlens
     , network
+    , split
     , text
     , vty
   default-language: Haskell2010
 
 executable chat-server-exe
-  main-is: Main.hs
+  main-is: simplified-server.hs
   other-modules:
+      Main
       Paths_codenames_haskell
   hs-source-dirs:
       src/server-client/server
@@ -78,6 +81,7 @@ executable chat-server-exe
     , containers
     , microlens
     , network
+    , split
     , text
     , vty
   default-language: Haskell2010

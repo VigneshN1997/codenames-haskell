@@ -4,7 +4,9 @@ import Control.Concurrent
 import Control.Monad             
 -- import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as C
+
 import Network.Socket 
+import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
 import Control.Monad.Fix (fix)
@@ -59,9 +61,11 @@ rrLoop sock msgNum = do
   print "sup?"
 
   reader <- forkIO $ fix $ \loop -> do
-        sendAll sock (C.pack "Some message from server!")
+        sendAll sock (C.pack "Temperature,2")
+        -- sendAll sock (C.pack "Some message from server!")
         -- threadDelay 5000000
         -- loop
+
 
   writer sock
   killThread reader
@@ -78,7 +82,13 @@ writer sock = do
                               threadDelay 100000
                               -- close sock
                   ""     -> return ()
-                  _      -> do
-                              print ("TCP server received: " ++ s)
+                  _     -> do
+                              let splitString = splitOn "Enter" s                                
+                              print ("TCP server received: " ++ splitString!!1)
                               threadDelay 100000
                               -- writer
+
+
+
+-- To split string on delimiter : let splitString = splitOn "," message
+

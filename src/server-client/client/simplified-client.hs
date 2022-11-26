@@ -1,6 +1,7 @@
 module Main where
 
 import qualified Data.ByteString.Char8 as C
+import Data.List.Split
 import Network.Socket
 import Network.Socket.ByteString (recv, sendAll)
 
@@ -32,12 +33,14 @@ loopTry sock = do
             case inp of
                 "S" -> do
                         print ("Recieved input: " ++ inp)
-                        sendMess "Next Msg from client"
+                        sendMess "Enter2,2"
+                        -- sendMess "Next Msg from client"
                         loopTry sock
                 "R"  -> do
                         print ("Recieved input: " ++ inp)
                         message <- recvMess
-                        print ("Client:loopTry recieved" ++ message)
+                        let splitString = splitOn "," message
+                        print ("Client:loopTry recieved  Clue: " ++ splitString!!0 ++ "Number : "++ splitString!!1)
                         loopTry sock
                 _ -> do
                         print ("Recieved input: " ++ inp)
