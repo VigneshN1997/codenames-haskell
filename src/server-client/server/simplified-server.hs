@@ -31,15 +31,15 @@ setupServer = do
   listen sock 5
   runTCPEchoServerForever sock 0
 
-sendMess :: String -> IO ()
-sendMess s = do
-                sock <- openConnection
+sendMess :: Socket -> String -> IO ()
+sendMess sock s = do
+                -- sock <- openConnection
                 sendAll sock $ C.pack s
 
 
-recvMess :: IO [Char]
-recvMess = do
-    sock <- openConnection
+recvMess :: Socket -> IO [Char]
+recvMess sock = do
+    -- sock <- openConnection
     x <- recv sock 1024
     return (C.unpack x)
 
@@ -57,35 +57,45 @@ runTCPEchoServerForever sock msgNum = do
   runTCPEchoServerForever sock $! msgNum + 1
 
 rrLoop :: Eq a => Socket -> a -> IO ()
-rrLoop sock msgNum = do  
+rrLoop sock msgNum = do
+  msg <- recv sock 1024
+  let s = C.unpack msg
+  print s
+  sendAll sock $ C.pack "dwdwdw"
+  -- sendMess sock "Loc 0,0"
   print "sup?"
-
-  reader <- forkIO $ fix $ \loop -> do
-        sendAll sock (C.pack "Temperature,2")
-        -- sendAll sock (C.pack "Some message from server!")
-        -- threadDelay 5000000
-        -- loop
+  rrLoop sock 3
 
 
-  writer sock
-  killThread reader
+
+  -- reader <- forkIO $ fix $ \loop -> do
+  --       -- s <- getLine
+  --       -- sendAll sock (C.pack "Temperature,2")
+  --       sendAll sock (C.pack s)
+  --       -- sendAll sock (C.pack "Some message from server!")
+  --       -- threadDelay 5000000
+  --       -- loop
+
+
+  -- writer sock
+  -- killThread reader
 
   -- helper function for listening to the client
-writer :: Socket -> IO ()
-writer sock = do
-                -- sock <- getSocket
-                msg <- recv sock 1024
-                let s = C.unpack msg
-                case s of
-                  "quit" -> do
-                              print "TCP client closing"
-                              threadDelay 100000
-                              -- close sock
-                  ""     -> return ()
-                  _     -> do
-                              let splitString = splitOn "Enter" s                                
-                              print ("TCP server received: " ++ splitString!!1)
-                              threadDelay 100000
+-- writer :: Socket -> IO ()
+-- writer sock = do
+--                 -- sock <- getSocket
+--                 msg <- recv sock 1024
+--                 let s = C.unpack msg
+--                 case s of
+--                   "quit" -> do
+--                               print "TCP client closing"
+--                               threadDelay 100000
+--                               -- close sock
+--                   ""     -> return ()
+--                   _     -> do
+--                               let splitString = splitOn "Enter" s                                
+--                               print ("TCP server received: " ++ splitString!!1)
+--                               threadDelay 100000
                               -- writer
 
 
