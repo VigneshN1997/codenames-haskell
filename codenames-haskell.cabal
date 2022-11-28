@@ -25,11 +25,12 @@ source-repository head
 
 library
   exposed-modules:
-      BoardGenerator
+      Codenames
       Game
-      Lib
-      Types
-      UI
+      UI.GameUI
+      UI.PlayerBoard
+      UI.SpyBoard
+      UI.Styles
   other-modules:
       Paths_codenames_haskell
   hs-source-dirs:
