@@ -28,6 +28,7 @@ dependencies:
 - vty
 - network
 - bytestring
+- vector
 
 ghc-options:
 - -Wall
