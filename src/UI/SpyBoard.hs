@@ -14,6 +14,48 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
 
+import Control.Concurrent       
+import Control.Monad             
+-- import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Char8 as C
+
+import Network.Socket 
+-- import Data.List.Split
+import Network.Socket.ByteString (recv, sendAll)
+import System.IO()
+import Control.Monad.IO.Class (MonadIO(liftIO))
+
+
+-- Server socket connection stuff
+openConnection :: IO Socket
+openConnection = do
+                  addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
+                  let serveraddr = head addrinfos
+                  sock <- socket (addrFamily serveraddr) Stream defaultProtocol
+                  connect sock (addrAddress serveraddr)
+                  return sock
+
+
+runTCPEchoServerForever :: (Eq a, Num a) => Socket -> a -> IO b
+runTCPEchoServerForever sock msgNum = do 
+  (conn, _)     <- accept sock
+  _ <- forkIO (rrLoop conn) -- conn and sock are same
+  _ <- forkIO (wLoop conn)
+  runTCPEchoServerForever sock $! msgNum + 1
+
+
+rrLoop :: Socket -> IO ()
+rrLoop sock = do
+  msg <- recv sock 1024
+  let s = C.unpack msg
+  print s
+
+wLoop :: Socket -> IO ()
+wLoop sock = do
+    sendAll sock $ C.pack "dwdwdw"
+    print "wLoop: completed writing"
+
+-- ===============================
 
 getColorBgStyle :: CardColor -> AttrName
 getColorBgStyle Red = styleRedCell
@@ -79,15 +121,18 @@ drawSpyBoard sb = [(drawGrid sb)<=> (drawPlayerStats sb)]
 --             plgrid = g
 --         }
 
-handleSEvent :: SpyGameState -> BrickEvent Name () -> EventM Name (Next Codenames)
-handleSEvent spyGameState(VtyEvent (V.EvKey key [])) =
-  continue $ case key of
-    V.KUp    -> SpyView (moveCursor UpD spyGameState)
-    V.KDown  -> SpyView (moveCursor DownD spyGameState)
-    V.KLeft  -> SpyView (moveCursor LeftD spyGameState)
-    V.KRight -> SpyView (moveCursor RightD spyGameState)
-    V.KEnter -> SpyView (updateGame spyGameState)
-    _        -> SpyView spyGameState
+handleSEvent :: Socket -> SpyGameState -> BrickEvent Name () -> EventM Name (Next Codenames)
+handleSEvent sock spyGameState(VtyEvent (V.EvKey key [])) =
+  case key of
+    -- V.KUp    -> SpyView (moveCursor UpD spyGameState)
+    -- V.KDown  -> SpyView (moveCursor DownD spyGameState)
+    -- V.KLeft  -> SpyView (moveCursor LeftD spyGameState)
+    -- V.KRight -> SpyView (moveCursor RightD spyGameState)
+    V.KEnter -> do
+                liftIO $ wLoop sock
+                -- sSpyMastersTurn SpyGameState
+                continue $ SpyView (updateGame spyGameState)
+    -- _        -> SpyView spyGameState
 
 -- handleEvent :: SpyBoard -> BrickEvent () e -> EventM () (Next SpyBoard)
 -- handleEvent sb (VtyEvent (V.EvKey key [V.MCtrl]))  = 
@@ -97,5 +142,5 @@ handleSEvent spyGameState(VtyEvent (V.EvKey key [])) =
 --         _           ->  continue sb
 
 
-
-handleSEvent _ _ = undefined
+-- sock = openConnection
+handleSEvent sock _ _ = undefined

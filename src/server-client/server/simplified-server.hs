@@ -22,7 +22,7 @@ openConnection = do
 
 -- TODO: There is redundancy between main and openConnection. Need to Refactor
 
-setupServer :: IO()
+setupServer :: IO ()
 setupServer = do
   addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
   let serveraddr = head addrinfos
@@ -53,52 +53,25 @@ main = do
 runTCPEchoServerForever :: (Eq a, Num a) => Socket -> a -> IO b
 runTCPEchoServerForever sock msgNum = do 
   (conn, _)     <- accept sock
-  _ <- forkIO (rrLoop conn msgNum) -- conn and sock are same
+  _ <- forkIO (rrLoop conn) -- conn and sock are same
+  _ <- forkIO (wLoop conn)
   runTCPEchoServerForever sock $! msgNum + 1
 
-rrLoop :: Eq a => Socket -> a -> IO ()
-rrLoop sock msgNum = do
+wLoop :: Socket -> IO ()
+wLoop sock = do
+    sendAll sock $ C.pack "dwdwdw"
+    print "wLoop: completed writing"
+    -- threadDelay 5000000
+    -- wLoop sock
+
+rrLoop :: Socket -> IO ()
+rrLoop sock = do
   msg <- recv sock 1024
   let s = C.unpack msg
   print s
-  sendAll sock $ C.pack "dwdwdw"
-  -- sendMess sock "Loc 0,0"
-  print "sup?"
-  rrLoop sock 3
 
+  -- TODO: write into the brick channel here
 
-
-  -- reader <- forkIO $ fix $ \loop -> do
-  --       -- s <- getLine
-  --       -- sendAll sock (C.pack "Temperature,2")
-  --       sendAll sock (C.pack s)
-  --       -- sendAll sock (C.pack "Some message from server!")
-  --       -- threadDelay 5000000
-  --       -- loop
-
-
-  -- writer sock
-  -- killThread reader
-
-  -- helper function for listening to the client
--- writer :: Socket -> IO ()
--- writer sock = do
---                 -- sock <- getSocket
---                 msg <- recv sock 1024
---                 let s = C.unpack msg
---                 case s of
---                   "quit" -> do
---                               print "TCP client closing"
---                               threadDelay 100000
---                               -- close sock
---                   ""     -> return ()
---                   _     -> do
---                               let splitString = splitOn "Enter" s                                
---                               print ("TCP server received: " ++ splitString!!1)
---                               threadDelay 100000
-                              -- writer
-
-
-
--- To split string on delimiter : let splitString = splitOn "," message
-
+  
+  print "rrLoop: completed listening"
+  rrLoop sock

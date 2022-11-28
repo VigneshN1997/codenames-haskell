@@ -17,6 +17,17 @@ module Game
 ) where
 
 import Lens.Micro (ix, (%~), (&))
+import Network.Socket (Socket)
+
+
+import qualified Data.ByteString.Char8 as C
+
+import Network.Socket 
+-- import Data.List.Split
+import Network.Socket.ByteString (recv, sendAll)
+import System.IO()
+import Control.Monad.IO.Class (MonadIO(liftIO))
+
 
 
 type RIdx = Int
@@ -303,14 +314,22 @@ data SpyGameState = SpyGameState {
     sTeamTurn       :: CardColor,
     sSpyHint        :: SpyHint,
     sSpyMastersTurn :: Bool,
-    sPlayerCursor   :: Coord
-} deriving (Show)
+    sPlayerCursor   :: Coord,
+    sSock           :: IO Socket
+} deriving ()
 
 
 -- utility functions
-
+openConnection :: IO Socket
+openConnection = do
+                  addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
+                  let serveraddr = head addrinfos
+                  sock1 <- socket (addrFamily serveraddr) Stream defaultProtocol
+                  connect sock1 (addrAddress serveraddr)
+                  return sock1
 -- main functions
-
+sock :: IO Socket
+sock = openConnection
 
 
 
@@ -333,7 +352,8 @@ createSpyState wordlis colors = createBoard cellList
                                     sCardColor = downloadedColorList,
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = SHint "Temperature" 2
+                                    sSpyHint = SHint "Temperature" 2, 
+                                    sSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
