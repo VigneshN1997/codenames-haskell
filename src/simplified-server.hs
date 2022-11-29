@@ -86,13 +86,6 @@ recvMess sock = do
     x <- recv sock 1024
     return (C.unpack x)
 
-downloadedColorList :: [CardColor]
-downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
-egwordList :: [String]
-egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
-
-
-
 
 
 -- runTCPEchoServerForever :: (Eq a, Num a) => Socket -> a -> IO b

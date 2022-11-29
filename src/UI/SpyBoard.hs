@@ -25,6 +25,15 @@ import Network.Socket
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
 import Control.Monad.IO.Class (MonadIO(liftIO))
+import qualified Data.ByteString.Char8 as CH
+
+
+
+-- send and recieve message APIs
+sendMessFromServer :: Socket -> String -> IO ()
+sendMessFromServer sock s = do
+--   sock <- openConnection
+  sendAll sock $ CH.pack s
 
 
 -- Server socket connection stuff
@@ -129,7 +138,9 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
     V.KDown  -> continue $ SpyView (moveCursor DownD spyGameState)
     V.KLeft  -> continue $ SpyView (moveCursor LeftD spyGameState)
     V.KRight -> continue $ SpyView (moveCursor RightD spyGameState)
-    V.KEnter -> continue $ SpyView (updateGame spyGameState)
+    V.KEnter -> do
+                    liftIO $ (sendMessFromServer (sSock spyGameState) "SERVER MSG")
+                    continue $ SpyView (updateGame spyGameState)
     _        -> continue $ SpyView spyGameState
 
 -- handleEvent :: SpyBoard -> BrickEvent () e -> EventM () (Next SpyBoard)
@@ -138,6 +149,10 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
 --         -- Quit
 --         V.KChar 'q' -> halt sb
 --         _           ->  continue sb
+
+handleSEvent (SpyView spyGameState) (AppEvent (ConnectionTick csReceived)) = do
+                                case csReceived of
+                                    S_Str message ->  continue $ (SpyView (updateHintFromPlayer message spyGameState))
 
 
 -- sock = openConnection

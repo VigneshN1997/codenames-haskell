@@ -1,11 +1,12 @@
 module Codenames (
-    initialGamePlayer,
     getMainMenu,
     Codenames(..),
     ConnectionTick(..),
     MessageS(..),
     Name(..),
-    MenuList
+    MenuList,
+    downloadedColorList,
+    egwordList
 ) where
 
 import Game
@@ -31,8 +32,8 @@ getMainMenu :: Codenames
 getMainMenu = MainMenu menuOptions
 
 -- | Creates an initial 'Game' starting at the main menu
-initialGamePlayer :: Codenames
-initialGamePlayer = PlayerView pb
+-- initialGamePlayer :: Codenames
+-- initialGamePlayer = PlayerView pb
 
 -- initialGameSpy :: Codenames
 -- initialGameSpy = SpyView sb
@@ -42,8 +43,8 @@ downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue,
 egwordList :: [String]
 egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
 
-pb :: PlayerGameState
-pb = createPlayerState egwordList downloadedColorList
+-- pb :: PlayerGameState
+-- pb = createPlayerState egwordList downloadedColorList
 
 -- sb :: SpyGameState
 -- sb = createSpyState egwordList downloadedColorList

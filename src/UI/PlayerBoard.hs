@@ -1,19 +1,26 @@
 module UI.PlayerBoard (
     drawPlayerBoard,
-    handleKeyPlayer
+    handleKeyPlayer,
+    sendMess
 ) where
 
 import Game
 import Codenames
 import UI.Styles
 
+import Control.Concurrent       
+import Control.Monad.IO.Class
+
 import Brick
+import Network.Socket
 import qualified Brick.Main as M
+import Network.Socket.ByteString (recv, sendAll)
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
+import qualified Data.ByteString.Char8 as CH
 
 -- | Get the background style of a card based on its color
 getColorBgStyle :: CardColor -> AttrName
@@ -83,14 +90,33 @@ drawPlayerBoard :: PlayerGameState -> [Widget Name]
 drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
 
 
+-- send and recieve message APIs
+sendMess :: Socket -> String -> IO ()
+sendMess sock s = do
+--   sock <- openConnection
+  sendAll sock $ CH.pack s
+
+
 -- | Handle key events on the player view
-handleKeyPlayer :: PlayerGameState -> BrickEvent Name () -> EventM Name (Next Codenames)
-handleKeyPlayer playerGameState (VtyEvent (V.EvKey key [])) =
-  M.continue $ case key of
-    V.KUp    -> PlayerView (moveCursor UpD playerGameState)
-    V.KDown  -> PlayerView (moveCursor DownD playerGameState)
-    V.KLeft  -> PlayerView (moveCursor LeftD playerGameState)
-    V.KRight -> PlayerView (moveCursor RightD playerGameState)
-    V.KEnter -> PlayerView (updateGame playerGameState)
-    _        -> PlayerView playerGameState
+handleKeyPlayer :: Codenames -> BrickEvent Name ConnectionTick -> EventM Name (Next Codenames)
+handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
+  case key of
+    V.KUp    -> M.continue $ (PlayerView  $ (moveCursor UpD playerGameState))
+    V.KDown  -> M.continue $ (PlayerView  $ (moveCursor DownD playerGameState))
+    V.KLeft  -> M.continue $ (PlayerView  $ (moveCursor LeftD playerGameState))
+    V.KRight -> M.continue $ (PlayerView  $ (moveCursor RightD playerGameState))
+    V.KEnter -> do
+                    liftIO $ (sendMess (pSock playerGameState) (show (pSpyHint playerGameState)))
+                    M.continue $ (PlayerView  $ (updateGame playerGameState))
+    _        -> M.continue $ (PlayerView playerGameState)
 -- handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)
+
+
+handleKeyPlayer (PlayerView playerGameState) (AppEvent (ConnectionTick csReceived)) = do
+                                case csReceived of
+                                    S_Str message ->  continue $ (PlayerView (updateHintFromSpy message playerGameState))
+
+
+
+handleKeyPlayer (PlayerView playerGameState) _ = M.continue (PlayerView playerGameState)
+

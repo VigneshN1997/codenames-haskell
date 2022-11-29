@@ -14,6 +14,8 @@ module Game
   , SpyGrid
   , createPlayerState
   , createSpyState
+  , updateHintFromPlayer
+  , updateHintFromSpy
 ) where
 
 import Lens.Micro (ix, (%~), (&))
@@ -110,7 +112,8 @@ data PlayerGameState = PlayerGameState {
     pTeamTurn      :: CardColor,
     pSpyHint       :: SpyHint,
     pPlayerCursor  :: Coord,
-    pSpyMastersTurn :: Bool
+    pSpyMastersTurn :: Bool,
+    pSock           :: Socket
 } deriving (Show)
 
 -- utility functions
@@ -121,8 +124,8 @@ data PlayerGameState = PlayerGameState {
 createPlayerCard :: (String, CardColor, Idx) -> PlayerCell
 createPlayerCard (word, color, idx) = PCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
-createPlayerState :: [String] -> [CardColor] -> PlayerGameState
-createPlayerState wordlis colors = createBoard cellList
+createPlayerState :: [String] -> [CardColor] -> Socket -> PlayerGameState
+createPlayerState wordlis colors sock = createBoard cellList
         where
             tupleList = zip3 wordlis colors [0..((gridSize*gridSize) - 1)]
             cellList = map createPlayerCard tupleList
@@ -137,7 +140,8 @@ createPlayerState wordlis colors = createBoard cellList
                                     pCardColor = downloadedColorList,
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = SHint "Player Game Hint" 2
+                                    pSpyHint = SHint "Player Game Hint" 2,
+                                    pSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -407,10 +411,14 @@ isSCardClicked (SCell _ _ isClicked _) = isClicked
 
 
 
+updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
+
+updateHintFromPlayer msg sb = sb { sSpyHint = (SHint msg 4) }
 
 
+updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
 
-
+updateHintFromSpy msg pb = pb { pSpyHint = (SHint msg 8) }
 
 
         
