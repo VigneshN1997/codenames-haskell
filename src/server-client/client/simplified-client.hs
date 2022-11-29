@@ -47,6 +47,7 @@ loopTry sock = do
 
 recurConv :: Socket -> IO()
 recurConv sock = do
+                print "HI"
                 sendMess sock "Initial Msg from client"
                 message <- recvMess sock
                 print ("Client: " ++ message)

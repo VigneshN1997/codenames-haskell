@@ -22,14 +22,18 @@ openConnection = do
 
 -- TODO: There is redundancy between main and openConnection. Need to Refactor
 
-setupServer :: IO()
+setupServer :: IO Socket
 setupServer = do
   addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
   let serveraddr = head addrinfos
   sock <- socket (addrFamily serveraddr) Stream defaultProtocol
   bind sock (addrAddress serveraddr)
   listen sock 5
-  runTCPEchoServerForever sock 0
+  (conn, _)     <- accept sock
+  -- runTCPEchoServerForever sock 0
+  print conn
+  return conn
+
 
 sendMess :: Socket -> String -> IO ()
 sendMess sock s = do
@@ -43,9 +47,21 @@ recvMess sock = do
     x <- recv sock 1024
     return (C.unpack x)
 
+talkToClient :: Socket -> IO()
+talkToClient sock = do 
+                      print sock
+                      mes <- recvMess sock
+                      print mes
+                      sendMess sock "HELLOOOOO"
+                      -- _ <- getLine
+                      -- threadDelay 2000000
+                      talkToClient sock
+
 main :: IO ()
 main = do
-        setupServer
+        sock <- setupServer
+        talkToClient sock
+
 
 
 
