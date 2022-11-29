@@ -137,7 +137,7 @@ createPlayerState wordlis colors = createBoard cellList
                                     pCardColor = downloadedColorList,
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = SHint "Temperature" 2
+                                    pSpyHint = SHint "Player Game Hint" 2
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -315,29 +315,14 @@ data SpyGameState = SpyGameState {
     sSpyHint        :: SpyHint,
     sSpyMastersTurn :: Bool,
     sPlayerCursor   :: Coord,
-    sSock           :: IO Socket
-} deriving ()
-
-
--- utility functions
-openConnection :: IO Socket
-openConnection = do
-                  addrinfos <- getAddrInfo Nothing (Just "127.0.0.1") (Just "4242")
-                  let serveraddr = head addrinfos
-                  sock1 <- socket (addrFamily serveraddr) Stream defaultProtocol
-                  connect sock1 (addrAddress serveraddr)
-                  return sock1
--- main functions
-sock :: IO Socket
-sock = openConnection
-
-
+    sSock           :: Socket
+} deriving (Show)
 
 createSpyCard :: (String, CardColor, Idx) -> SpyCell
 createSpyCard (word, color, idx) = SCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
-createSpyState :: [String] -> [CardColor] -> SpyGameState
-createSpyState wordlis colors = createBoard cellList
+createSpyState :: [String] -> [CardColor] -> Socket -> SpyGameState
+createSpyState wordlis colors sock = createBoard cellList
         where
             tupleList = zip3 wordlis colors [0..((gridSize*gridSize) - 1)]
             cellList = map createSpyCard tupleList
@@ -352,7 +337,7 @@ createSpyState wordlis colors = createBoard cellList
                                     sCardColor = downloadedColorList,
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = SHint "Temperature" 2, 
+                                    sSpyHint = SHint "Spy Game Hint" 2, 
                                     sSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis

@@ -51,10 +51,15 @@ library
 executable chat-client-exe
   main-is: simplified-client.hs
   other-modules:
-      Main
+      Codenames
+      Game
+      UI.GameUI
+      UI.PlayerBoard
+      UI.SpyBoard
+      UI.Styles
       Paths_codenames_haskell
   hs-source-dirs:
-      src/server-client/client
+      src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
@@ -72,10 +77,15 @@ executable chat-client-exe
 executable chat-server-exe
   main-is: simplified-server.hs
   other-modules:
-      Main
+      Codenames
+      Game
+      UI.GameUI
+      UI.PlayerBoard
+      UI.SpyBoard
+      UI.Styles
       Paths_codenames_haskell
   hs-source-dirs:
-      src/server-client/server
+      src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base
@@ -114,6 +124,7 @@ test-suite codenames-haskell-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Test
       Paths_codenames_haskell
   hs-source-dirs:
       test

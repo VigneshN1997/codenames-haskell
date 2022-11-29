@@ -8,6 +8,7 @@ import Codenames
 import UI.Styles
 
 import Brick
+import Foreign.Marshal.Unsafe
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
@@ -121,18 +122,15 @@ drawSpyBoard sb = [(drawGrid sb)<=> (drawPlayerStats sb)]
 --             plgrid = g
 --         }
 
-handleSEvent :: Socket -> SpyGameState -> BrickEvent Name () -> EventM Name (Next Codenames)
-handleSEvent sock spyGameState(VtyEvent (V.EvKey key [])) =
+handleSEvent :: Codenames -> BrickEvent Name ConnectionTick -> EventM Name (Next Codenames)
+handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   case key of
-    -- V.KUp    -> SpyView (moveCursor UpD spyGameState)
-    -- V.KDown  -> SpyView (moveCursor DownD spyGameState)
-    -- V.KLeft  -> SpyView (moveCursor LeftD spyGameState)
-    -- V.KRight -> SpyView (moveCursor RightD spyGameState)
-    V.KEnter -> do
-                liftIO $ wLoop sock
-                -- sSpyMastersTurn SpyGameState
-                continue $ SpyView (updateGame spyGameState)
-    -- _        -> SpyView spyGameState
+    V.KUp    -> continue $ SpyView (moveCursor UpD spyGameState)
+    V.KDown  -> continue $ SpyView (moveCursor DownD spyGameState)
+    V.KLeft  -> continue $ SpyView (moveCursor LeftD spyGameState)
+    V.KRight -> continue $ SpyView (moveCursor RightD spyGameState)
+    V.KEnter -> continue $ SpyView (updateGame spyGameState)
+    _        -> continue $ SpyView spyGameState
 
 -- handleEvent :: SpyBoard -> BrickEvent () e -> EventM () (Next SpyBoard)
 -- handleEvent sb (VtyEvent (V.EvKey key [V.MCtrl]))  = 
@@ -143,4 +141,4 @@ handleSEvent sock spyGameState(VtyEvent (V.EvKey key [])) =
 
 
 -- sock = openConnection
-handleSEvent sock _ _ = undefined
+handleSEvent _ _ = undefined

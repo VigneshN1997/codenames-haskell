@@ -1,6 +1,6 @@
 module UI.GameUI 
 ( 
-    localApp
+  drawGame
 ) where
 
 import Codenames
@@ -36,39 +36,39 @@ listDrawElement selected t = C.hCenter $  (str selected_sign) <+> (str t)
 -- | The main draw function to draw different screens in the game
 drawGame :: Codenames -> [Widget Name]
 drawGame g = case g of
-    MainMenu menu -> drawList menu
+    -- MainMenu menu -> drawList menu
     PlayerView pb -> drawPlayerBoard pb
     SpyView sb    -> drawSpyBoard sb
 
 -- | Handle main menu key events
-handleKeyMainMenu :: MenuList -> BrickEvent Name () -> EventM Name (Next Codenames)
-handleKeyMainMenu l (VtyEvent e) = case e of
-  V.EvKey V.KEsc [] -> exit
-  V.EvKey V.KEnter []
-    | Just i <- L.listSelected l -> case i of
-      0 -> M.continue initialGamePlayer
-      1 -> M.continue initialGameSpy
-      _ -> M.continue getMainMenu
-  ev -> M.continue . MainMenu =<< L.handleListEvent ev l
-  where
-    exit = M.halt $ MainMenu l
-handleKeyMainMenu l _ = M.continue $ MainMenu l
+-- handleKeyMainMenu :: MenuList -> BrickEvent Name () -> EventM Name (Next Codenames)
+-- handleKeyMainMenu l (VtyEvent e) = case e of
+--   V.EvKey V.KEsc [] -> exit
+--   V.EvKey V.KEnter []
+--     | Just i <- L.listSelected l -> case i of
+--       0 -> M.continue initialGamePlayer
+--       1 -> M.continue initialGameSpy
+--       _ -> M.continue getMainMenu
+--   ev -> M.continue . MainMenu =<< L.handleListEvent ev l
+--   where
+--     exit = M.halt $ MainMenu l
+-- handleKeyMainMenu l _ = M.continue $ MainMenu l
 
--- | The main handle event function which passes on the event to different handles based on screen
-handleEventFirst :: Codenames -> BrickEvent Name () -> EventM Name (Next Codenames)
-handleEventFirst gs eventKey = case gs of
-  MainMenu menuOp -> handleKeyMainMenu menuOp eventKey
-  PlayerView playerGame -> handleKeyPlayer playerGame eventKey
-  SpyView spyGame -> handleSEvent spyGame eventKey
+-- -- | The main handle event function which passes on the event to different handles based on screen
+-- handleEventFirst :: Codenames -> BrickEvent Name () -> EventM Name (Next Codenames)
+-- handleEventFirst gs eventKey = case gs of
+--   MainMenu menuOp -> handleKeyMainMenu menuOp eventKey
+--   PlayerView playerGame -> handleKeyPlayer playerGame eventKey
+--   SpyView spyGame -> handleSEvent spyGame eventKey
 
 
--- | Brick app for handling a codenames game
-localApp :: M.App Codenames () Name
-localApp =
-  M.App
-    { M.appDraw = drawGame,
-      M.appChooseCursor = const . const Nothing,
-      M.appHandleEvent = handleEventFirst,
-      M.appStartEvent = return,
-      M.appAttrMap = const attributes
-    }
+-- -- | Brick app for handling a codenames game
+-- localApp :: M.App Codenames () Name
+-- localApp =
+--   M.App
+--     { M.appDraw = drawGame,
+--       M.appChooseCursor = const . const Nothing,
+--       M.appHandleEvent = handleEventFirst,
+--       M.appStartEvent = return,
+--       M.appAttrMap = const attributes
+--     }

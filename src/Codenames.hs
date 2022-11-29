@@ -1,8 +1,9 @@
 module Codenames (
     initialGamePlayer,
     getMainMenu,
-    initialGameSpy,
     Codenames(..),
+    ConnectionTick(..),
+    MessageS(..),
     Name(..),
     MenuList
 ) where
@@ -22,6 +23,9 @@ data Codenames
     | PlayerView PlayerGameState
     | SpyView SpyGameState
 
+data MessageS = S_Str String
+
+newtype ConnectionTick = ConnectionTick MessageS
 
 getMainMenu :: Codenames
 getMainMenu = MainMenu menuOptions
@@ -30,8 +34,8 @@ getMainMenu = MainMenu menuOptions
 initialGamePlayer :: Codenames
 initialGamePlayer = PlayerView pb
 
-initialGameSpy :: Codenames
-initialGameSpy = SpyView sb
+-- initialGameSpy :: Codenames
+-- initialGameSpy = SpyView sb
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
@@ -41,8 +45,8 @@ egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLO
 pb :: PlayerGameState
 pb = createPlayerState egwordList downloadedColorList
 
-sb :: SpyGameState
-sb = createSpyState egwordList downloadedColorList
+-- sb :: SpyGameState
+-- sb = createSpyState egwordList downloadedColorList
 
 
 menuOptions :: L.GenericList Name Vec.Vector String
