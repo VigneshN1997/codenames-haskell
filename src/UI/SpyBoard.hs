@@ -141,4 +141,4 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
 
 
 -- sock = openConnection
-handleSEvent _ _ = undefined
+handleSEvent (SpyView spyGameState) _ = continue $ SpyView spyGameState
