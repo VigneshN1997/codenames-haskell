@@ -107,7 +107,7 @@ getColorBgStyle Blue = styleBlueCell
 getColorBgStyle Black = styleBlackCell
 getColorBgStyle Yellow = styleYellowCell
 
-getClickedCursorStyle :: String -> CardColor -> Widget Name
+getClickedCursorStyle :: String -> CardColor -> Widget Hint
 getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 getUnclickedCursorStyle :: String -> CardColor -> Widget Hint
@@ -184,10 +184,15 @@ drawInput :: SpyStateAndForm -> Widget Hint
 drawInput g = addBorder (T.pack "Word and Count") (E.renderEditor (txt . T.unlines) True (g ^. wordCount))
 
 handleSEvent :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next Codenames)
+
+handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
+                                case csReceived of
+                                    S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (selectCard $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
+
 handleSEvent (SpyView sfb) (VtyEvent ev) = 
   case ev of
     V.EvKey V.KEnter [] -> continue $ SpyView sfb
-    _ -> continue . SpyView =<< (updateGameState sfb ev) 
+    _ -> continue . SpyView =<< (updateGameState sfb ev)
 -- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   -- case key of
   --   V.KUp    -> continue $ SpyView (moveCursor UpD spyGameState)
@@ -218,9 +223,6 @@ updateGameState g ev = do
 addBorder :: T.Text -> Widget Hint -> Widget Hint
 addBorder t = withBorderStyle BS.unicodeRounded . B.borderWithLabel (txt t)
 
--- handleSEvent (SpyView spyGameState) (AppEvent (ConnectionTick csReceived)) = do
---                                 case csReceived of
---                                     S_Str message ->  continue $ (SpyView (updateHintFromPlayer message spyGameState))
 
 
 -- -- sock = openConnection

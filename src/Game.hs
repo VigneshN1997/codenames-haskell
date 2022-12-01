@@ -234,7 +234,6 @@ instance GameState SpyGameState where
                                             LeftD -> Loc r (wrapAroundCursor (c-1) gridSize)
                                             RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
 
-    selectCard :: SpyGameState -> SpyGameState
     selectCard sb = updateSCard updateFn sb
                         where
                             updateFn :: SpyCell -> SpyCell
