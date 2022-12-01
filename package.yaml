@@ -25,6 +25,8 @@ dependencies:
 - containers
 - microlens
 - microlens-th
+- microlens-mtl
+- lens
 - text
 - vty
 - network

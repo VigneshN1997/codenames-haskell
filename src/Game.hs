@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Game 
 (Direction(..)
   , CardColor(..)
@@ -18,6 +20,8 @@ module Game
   , updateHintFromSpy
   , SpyStateAndForm(..)
   , Hint(..)
+  , wordCount
+  , spyState
 ) where
 
 import Lens.Micro (ix, (%~), (&))
@@ -47,7 +51,8 @@ import Brick.Forms
 -- import Control.Lens.TH
 import Lens.Micro.TH
 
-
+import qualified Brick.Widgets.Edit as E
+import qualified Data.Text as T
 
 import qualified Data.ByteString.Char8 as C
 
@@ -84,8 +89,7 @@ data SpymasterBoard = SpyBoard
                             spgrid :: SpyGrid
                         } deriving (Show)
 
-data SpyHint = SHint String WCount
-                deriving (Show)
+type SpyHint = String
 
 
 -- data TeamDetails
@@ -167,7 +171,7 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pCardColor = downloadedColorList,
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = SHint "Player Game Hint" 2,
+                                    pSpyHint = "Player Game Hint, 2",
                                     pSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
@@ -336,17 +340,6 @@ updateSpyMastersTurn Blue cColor = if cColor == Blue then False else True
 
 -- //////////////Spy Game State/////////////////
 
-
-
-data Hint = WordCountField
-          deriving (Eq, Ord, Show)
-
-data SpyStateAndForm = SpyForm { _wordCount      :: E.Editor T.Text Hint,
-                                _spyState :: SpyGameState} 
-    deriving (Show)
-
-makeLenses ''SpyStateAndForm
-
 data SpyGameState = SpyGameState {
     spyGrid        :: SpyGrid,
     sWordList       :: [String],
@@ -359,6 +352,7 @@ data SpyGameState = SpyGameState {
     sPlayerCursor   :: Coord,
     sSock           :: Socket
 } deriving (Show)
+
 
 createSpyCard :: (String, CardColor, Idx) -> SpyCell
 createSpyCard (word, color, idx) = SCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
@@ -379,7 +373,7 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sCardColor = downloadedColorList,
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = SHint "Spy Game Hint" 2, 
+                                    sSpyHint = "Spy Game Hint, 2", 
                                     sSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
@@ -451,16 +445,22 @@ isSCardClicked (SCell _ _ isClicked _) = isClicked
 
 updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
 
-updateHintFromPlayer msg sb = sb { sSpyHint = (SHint msg 4) }
+updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
 
-updateHintFromSpy msg pb = pb { pSpyHint = (SHint msg 8) }
+updateHintFromSpy msg pb = pb { pSpyHint = (msg) }
 
 
-        
+data Hint = WordCountField
+          deriving (Eq, Ord, Show)
 
+data SpyStateAndForm = SpyStateAndForm { _wordCount      :: E.Editor T.Text Hint,
+                                _spyState :: SpyGameState} 
+    deriving (Show)
+
+makeLenses ''SpyStateAndForm        
 
                    
 

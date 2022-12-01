@@ -30,23 +30,23 @@ getColorBgStyle Black = styleBlackCell
 getColorBgStyle Yellow = styleYellowCell
 
 -- | Render a clicked card on which player cursor is present currently
-getClickedCursorStyle :: String -> CardColor -> Widget Name
+getClickedCursorStyle :: String -> CardColor -> Widget Hint
 getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 -- | Render an unclicked card on which player cursor is present currently
-getUnclickedCursorStyle :: String -> CardColor -> Widget Name
+getUnclickedCursorStyle :: String -> CardColor -> Widget Hint
 getUnclickedCursorStyle word _ = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 -- | Render a clicked card on which player cursor is not present
-getClickedNormalStyle :: String -> CardColor -> Widget Name
+getClickedNormalStyle :: String -> CardColor -> Widget Hint
 getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
 -- | Render an unclicked card on which player cursor is not present
-getUnclickedNormalStyle ::  String -> CardColor -> Widget Name
+getUnclickedNormalStyle ::  String -> CardColor -> Widget Hint
 getUnclickedNormalStyle word _ = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 -- | Render a single player card
-drawPlayerCard :: PlayerCell -> Coord -> Widget Name
+drawPlayerCard :: PlayerCell -> Coord -> Widget Hint
 drawPlayerCard (PCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
                                                                                     then getClickedCursorStyle word color
                                                                                     else getClickedNormalStyle word color
@@ -55,7 +55,7 @@ drawPlayerCard (PCell (Loc cardx cardy) word False color) (Loc cursorx cursory) 
                                                                                     then getUnclickedCursorStyle word color
                                                                                     else getUnclickedNormalStyle word color
 -- | Render the player side game board
-drawGrid :: PlayerGameState -> Widget Name
+drawGrid :: PlayerGameState -> Widget Hint
 drawGrid pb = withBorderStyle BS.unicodeBold
     $ B.borderWithLabel ((withAttr styleBoard) $ str "Codenames Player View")
     $ vBox rows
@@ -65,28 +65,28 @@ drawGrid pb = withBorderStyle BS.unicodeBold
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
 -- | Render hint given by the spymaster
-renderHint :: String -> Int -> Widget Name
+renderHint :: String -> Int -> Widget Hint
 renderHint hintW hintNumW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str (hintW ++ "," ++ (show hintNumW)))
 
 -- | Render red team's score
-getRedTeamScoreBoard :: Int -> Widget Name
+getRedTeamScoreBoard :: Int -> Widget Hint
 getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
 
 -- | Render blue team's score
-getBlueTeamScoreBoard :: Int -> Widget Name
+getBlueTeamScoreBoard :: Int -> Widget Hint
 getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue score :" ++ (show score))
 
 -- | Render which team's turn it is currently
-renderPlayerTurn :: CardColor -> Widget Name
+renderPlayerTurn :: CardColor -> Widget Hint
 renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Team's Turn")
 
 -- | Render the player side stats for each team
-drawPlayerStats :: PlayerGameState -> Widget Name
-drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWord hintNum)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
-    where SHint hintWord hintNum = pSpyHint pb
+drawPlayerStats :: PlayerGameState -> Widget Hint
+drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWord 5)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
+    where hintWord = pSpyHint pb
 
 -- | Render the player side view
-drawPlayerBoard :: PlayerGameState -> [Widget Name]
+drawPlayerBoard :: PlayerGameState -> [Widget Hint]
 drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
 
 
@@ -98,7 +98,7 @@ sendMess sock s = do
 
 
 -- | Handle key events on the player view
-handleKeyPlayer :: Codenames -> BrickEvent Name ConnectionTick -> EventM Name (Next Codenames)
+handleKeyPlayer :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next Codenames)
 handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
   case key of
     V.KUp    -> M.continue $ (PlayerView  $ (moveCursor UpD playerGameState))

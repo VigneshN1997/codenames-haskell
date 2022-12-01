@@ -78,7 +78,7 @@ main = do
   return ()
 
 -- | Brick app for handling a codenames game
-playerApp :: M.App Codenames ConnectionTick Name
+playerApp :: M.App Codenames ConnectionTick Hint
 playerApp =
   M.App
     { M.appDraw = drawGame,

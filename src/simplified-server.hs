@@ -19,6 +19,8 @@ import Game
 import UI.SpyBoard
 import UI.Styles
 import UI.GameUI
+import qualified Brick.Widgets.Edit as E
+import qualified Data.Text as T
 
 -- helper function to obtain a socket connection
 openConnection :: IO Socket
@@ -55,12 +57,12 @@ main = do
                 message <- recvMess comm_sock
                 writeBChan eventChan $ ConnectionTick (S_Str message)
                 loop
-        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) "", _spyState = (createSpyState egwordList downloadedColorList comm_sock)})) 
+        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) (T.pack ""), _spyState = (createSpyState egwordList downloadedColorList comm_sock)})) 
         return ()
 
 
 -- | Brick app for handling a codenames game
-spyApp :: M.App Codenames ConnectionTick Name
+spyApp :: M.App Codenames ConnectionTick Hint
 spyApp =
   M.App
     { M.appDraw = drawGame,
