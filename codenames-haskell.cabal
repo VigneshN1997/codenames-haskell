@@ -40,7 +40,9 @@ library
       base >=4.7 && <5
     , brick
     , containers
+    , lens
     , microlens
+    , microlens-th
     , network
     , text
     , vector
@@ -59,7 +61,9 @@ executable codenames-haskell-exe
     , brick
     , codenames-haskell
     , containers
+    , lens
     , microlens
+    , microlens-th
     , network
     , text
     , vector
@@ -79,7 +83,9 @@ test-suite codenames-haskell-test
     , brick
     , codenames-haskell
     , containers
+    , lens
     , microlens
+    , microlens-th
     , network
     , text
     , vector

@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Game 
 (Direction(..)
   , CardColor(..)
@@ -14,9 +16,34 @@ module Game
   , SpyGrid
   , createPlayerState
   , createSpyState
+  , SpyStateAndForm(..)
+  , Hint(..)
 ) where
 
 import Lens.Micro (ix, (%~), (&))
+import Brick.Forms
+  ( Form
+  , newForm
+  , formState
+  , formFocus
+  , setFieldValid
+  , renderForm
+  , handleFormEvent
+  , invalidFields
+  , allFieldsValid
+  , focusedFormInputAttr
+  , invalidFormInputAttr
+  , checkboxField
+  , radioField
+  , editShowableField
+  , editTextField
+  , editPasswordField
+  , (@@=)
+  )
+-- import Control.Lens
+-- import Control.Lens.TH
+import Lens.Micro.TH
+
 
 
 type RIdx = Int
@@ -294,6 +321,17 @@ updateSpyMastersTurn Blue cColor = if cColor == Blue then False else True
 
 -- //////////////Spy Game State/////////////////
 
+data Hint = WordField
+          | CountField
+          deriving (Eq, Ord, Show)
+
+data SpyStateAndForm = SpyStateAndForm { _word      :: String
+                            , _count      :: WCount
+                            , _spyState        :: SpyGameState
+                            } deriving (Show)
+
+makeLenses ''SpyStateAndForm
+
 data SpyGameState = SpyGameState {
     spyGrid        :: SpyGrid,
     sWordList       :: [String],
@@ -305,7 +343,6 @@ data SpyGameState = SpyGameState {
     sSpyMastersTurn :: Bool,
     sPlayerCursor   :: Coord
 } deriving (Show)
-
 
 -- utility functions
 

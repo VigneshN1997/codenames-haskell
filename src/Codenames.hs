@@ -20,7 +20,7 @@ type MenuList = L.List Name String
 data Codenames
   =   MainMenu MenuList
     | PlayerView PlayerGameState
-    | SpyView SpyGameState
+    | SpyView SpyStateAndForm
 
 
 getMainMenu :: Codenames
@@ -31,7 +31,7 @@ initialGamePlayer :: Codenames
 initialGamePlayer = PlayerView pb
 
 initialGameSpy :: Codenames
-initialGameSpy = SpyView sb
+initialGameSpy = SpyView sfb
 
 downloadedColorList :: [CardColor]
 downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
@@ -43,6 +43,9 @@ pb = createPlayerState egwordList downloadedColorList
 
 sb :: SpyGameState
 sb = createSpyState egwordList downloadedColorList
+
+sfb :: SpyStateAndForm
+sfb = SpyStateAndForm {_word = "", _count = 0, _spyState = sb}
 
 
 menuOptions :: L.GenericList Name Vec.Vector String

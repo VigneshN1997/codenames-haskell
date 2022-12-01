@@ -24,6 +24,8 @@ dependencies:
 - brick
 - containers
 - microlens
+- microlens-th
+- lens
 - text
 - vty
 - network
