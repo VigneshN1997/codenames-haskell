@@ -1,4 +1,5 @@
-{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TemplateHaskell #-}
+
 module Game 
 (Direction(..)
   , CardColor(..)
@@ -17,12 +18,42 @@ module Game
   , createSpyState
   , updateHintFromPlayer
   , updateHintFromSpy
+  , SpyStateAndForm(..)
+  , Hint(..)
+  , wordCount
+  , spyState
   , updateSelectedCell
 ) where
 
 import Lens.Micro (ix, (%~), (&))
 import Network.Socket (Socket)
 
+import Lens.Micro (ix, (%~), (&))
+import Brick.Forms
+  ( Form
+  , newForm
+  , formState
+  , formFocus
+  , setFieldValid
+  , renderForm
+  , handleFormEvent
+  , invalidFields
+  , allFieldsValid
+  , focusedFormInputAttr
+  , invalidFormInputAttr
+  , checkboxField
+  , radioField
+  , editShowableField
+  , editTextField
+  , editPasswordField
+  , (@@=)
+  )
+-- import Control.Lens
+-- import Control.Lens.TH
+import Lens.Micro.TH
+
+import qualified Brick.Widgets.Edit as E
+import qualified Data.Text as T
 
 import qualified Data.ByteString.Char8 as C
 
@@ -59,8 +90,7 @@ data SpymasterBoard = SpyBoard
                             spgrid :: SpyGrid
                         } deriving (Show)
 
-data SpyHint = SHint String WCount
-                deriving (Show)
+type SpyHint = String
 
 
 -- data TeamDetails
@@ -142,7 +172,7 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pCardColor = downloadedColorList,
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = SHint "Player Game Hint" 2,
+                                    pSpyHint = "Player Game Hint, 2",
                                     pSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
@@ -325,6 +355,7 @@ data SpyGameState = SpyGameState {
     sSock           :: Socket
 } deriving (Show)
 
+
 createSpyCard :: (String, CardColor, Idx) -> SpyCell
 createSpyCard (word, color, idx) = SCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
@@ -344,7 +375,7 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sCardColor = downloadedColorList,
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = SHint "Spy Game Hint" 2, 
+                                    sSpyHint = "Spy Game Hint, 2", 
                                     sSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
@@ -416,11 +447,12 @@ isSCardClicked (SCell _ _ isClicked _) = isClicked
 
 updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
 
-updateHintFromPlayer msg sb = sb { sSpyHint = (SHint msg 4) }
+updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
-updateHintFromSpy msg pb = pb { pSpyHint = (SHint msg 8) }
+
+updateHintFromSpy msg pb = pb { pSpyHint = (msg) }
 
 updateSelectedCell :: String -> SpyGameState -> SpyGameState
 updateSelectedCell msg sb  = do
@@ -428,15 +460,18 @@ updateSelectedCell msg sb  = do
                                 let row = read(splitMsg !! 1) :: Int
                                 let col = read(splitMsg !! 2) :: Int
                                 sb { sPlayerCursor = Loc row col} 
-        
+data Hint = WordCountField
+          deriving (Eq, Ord, Show)
 
--- selectModifiedCard :: String -> SpyGameState -> SpyGameState
--- selectModifiedCard msg sb = 
+data SpyStateAndForm = SpyStateAndForm { _wordCount      :: E.Editor T.Text Hint,
+                                _spyState :: SpyGameState} 
+    deriving (Show)
 
--- selectCard :: SpyGameState -> SpyGameState
---     selectCard sb = updateSCard updateFn sb
---                         where
---                             updateFn :: SpyCell -> SpyCell
---                             updateFn cell = case cell of
---                                                 SCell l w True c -> SCell l w True c
---                                                 SCell l w False c -> SCell l w True c
+makeLenses ''SpyStateAndForm        
+
+                   
+
+
+
+
+

@@ -3,6 +3,7 @@ module UI.GameUI
   drawGame
 ) where
 
+import Game
 import Codenames
 import UI.PlayerBoard
 import UI.SpyBoard
@@ -16,13 +17,21 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.List as L
 
+import Control.Lens
+  ( makeFieldsNoPrefix,
+    makeLenses,
+    (%~),
+    (&),
+    (?~),
+    (^.),
+  )
 
 -- | Draws the menu screen to select between player view and spymaster view
-drawMenu :: Widget Name -> Widget Name
+drawMenu :: Widget Hint -> Widget Hint
 drawMenu w = (withBorderStyle BS.unicodeRounded . B.borderWithLabel (str "Codenames")) (padBottom Max (C.hCenter w))
 
 -- | Draw the list of options
-drawList :: MenuList -> [Widget Name]
+drawList :: MenuList -> [Widget Hint]
 drawList l = [drawMenu listWidget]
   where
     listWidget = L.renderList listDrawElement True l
@@ -34,14 +43,14 @@ listDrawElement selected t = C.hCenter $  (str selected_sign) <+> (str t)
     selected_sign = if selected then "* " else "  "
 
 -- | The main draw function to draw different screens in the game
-drawGame :: Codenames -> [Widget Name]
+drawGame :: Codenames -> [Widget Hint]
 drawGame g = case g of
     -- MainMenu menu -> drawList menu
     PlayerView pb -> drawPlayerBoard pb
-    SpyView sb    -> drawSpyBoard sb
-
+    SpyView sfb    -> [(vBox $ drawSpyBoard sb) <=> drawInput sfb]
+      where sb = sfb ^. spyState
 -- | Handle main menu key events
--- handleKeyMainMenu :: MenuList -> BrickEvent Name () -> EventM Name (Next Codenames)
+-- handleKeyMainMenu :: MenuList -> BrickEvent Hint () -> EventM Hint (Next Codenames)
 -- handleKeyMainMenu l (VtyEvent e) = case e of
 --   V.EvKey V.KEsc [] -> exit
 --   V.EvKey V.KEnter []
@@ -55,7 +64,7 @@ drawGame g = case g of
 -- handleKeyMainMenu l _ = M.continue $ MainMenu l
 
 -- -- | The main handle event function which passes on the event to different handles based on screen
--- handleEventFirst :: Codenames -> BrickEvent Name () -> EventM Name (Next Codenames)
+-- handleEventFirst :: Codenames -> BrickEvent Hint () -> EventM Hint (Next Codenames)
 -- handleEventFirst gs eventKey = case gs of
 --   MainMenu menuOp -> handleKeyMainMenu menuOp eventKey
 --   PlayerView playerGame -> handleKeyPlayer playerGame eventKey
@@ -63,7 +72,7 @@ drawGame g = case g of
 
 
 -- -- | Brick app for handling a codenames game
--- localApp :: M.App Codenames () Name
+-- localApp :: M.App Codenames () Hint
 -- localApp =
 --   M.App
 --     { M.appDraw = drawGame,

@@ -41,7 +41,10 @@ library
     , brick
     , bytestring
     , containers
+    , lens
     , microlens
+    , microlens-mtl
+    , microlens-th
     , network
     , split
     , text
@@ -67,7 +70,10 @@ executable chat-client-exe
     , brick
     , bytestring
     , containers
+    , lens
     , microlens
+    , microlens-mtl
+    , microlens-th
     , network
     , split
     , text
@@ -93,7 +99,10 @@ executable chat-server-exe
     , brick
     , bytestring
     , containers
+    , lens
     , microlens
+    , microlens-mtl
+    , microlens-th
     , network
     , split
     , text
@@ -114,7 +123,10 @@ executable codenames-haskell-exe
     , bytestring
     , codenames-haskell
     , containers
+    , lens
     , microlens
+    , microlens-mtl
+    , microlens-th
     , network
     , split
     , text
@@ -137,7 +149,10 @@ test-suite codenames-haskell-test
     , bytestring
     , codenames-haskell
     , containers
+    , lens
     , microlens
+    , microlens-mtl
+    , microlens-th
     , network
     , split
     , text

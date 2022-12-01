@@ -16,13 +16,13 @@ import qualified Data.Vector as Vec
 
 data Name = ResName
     deriving (Eq, Ord, Show)
-type MenuList = L.List Name String
+type MenuList = L.List Hint String
 
 -- | The current status of the game
 data Codenames
   =   MainMenu MenuList
     | PlayerView PlayerGameState
-    | SpyView SpyGameState
+    | SpyView SpyStateAndForm
 
 data MessageS = S_Str String
 
@@ -50,5 +50,5 @@ egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLO
 -- sb = createSpyState egwordList downloadedColorList
 
 
-menuOptions :: L.GenericList Name Vec.Vector String
-menuOptions = L.list ResName (Vec.fromList ["Player", "Spymaster"]) 2
+menuOptions :: L.GenericList Hint Vec.Vector String
+menuOptions = L.list WordCountField (Vec.fromList ["Player", "Spymaster"]) 2
