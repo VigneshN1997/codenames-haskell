@@ -29,6 +29,7 @@ dependencies:
 - network
 - bytestring
 - vector
+- split
 
 ghc-options:
 - -Wall

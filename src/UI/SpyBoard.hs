@@ -74,22 +74,25 @@ getColorBgStyle Black = styleBlackCell
 getColorBgStyle Yellow = styleYellowCell
 
 getClickedCursorStyle :: String -> CardColor -> Widget Name
-getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
+getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str $ word
 
 getUnclickedCursorStyle :: String -> CardColor -> Widget Name
 getUnclickedCursorStyle word _ = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 getClickedNormalStyle :: String -> CardColor -> Widget Name
-getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
+getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str $ word
 
 
 getUnclickedNormalStyle ::  String -> CardColor -> Widget Name
 getUnclickedNormalStyle word _ = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 drawSpyCard :: SpyCell -> Coord -> Widget Name
-drawSpyCard (SCell (Loc cardx cardy) word _ color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
+drawSpyCard (SCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
+                                                                                    then getClickedCursorStyle (word ++ "******") color
+                                                                                    else getClickedNormalStyle (word ++ "******") color
+drawSpyCard (SCell (Loc cardx cardy) word False color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
                                                                                     then getClickedCursorStyle word color
-                                                                                    else getClickedNormalStyle word color
+                                                                                    else getClickedNormalStyle word color                                                                                    
                                                                                         
 
 drawGrid :: SpyGameState -> Widget Name
@@ -141,6 +144,7 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
     V.KEnter -> do
                     liftIO $ (sendMessFromServer (sSock spyGameState) "SERVER MSG")
                     continue $ SpyView (updateGame spyGameState)
+    V.KEsc   -> halt (SpyView spyGameState)
     _        -> continue $ SpyView spyGameState
 
 -- handleEvent :: SpyBoard -> BrickEvent () e -> EventM () (Next SpyBoard)
@@ -152,7 +156,7 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
 
 handleSEvent (SpyView spyGameState) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
-                                    S_Str message ->  continue $ (SpyView (updateHintFromPlayer message spyGameState))
+                                    S_Str message -> continue $ (SpyView (selectCard (updateSelectedCell message spyGameState)))
 
 
 -- sock = openConnection

@@ -1,3 +1,4 @@
+{-# LANGUAGE InstanceSigs #-}
 module Game 
 (Direction(..)
   , CardColor(..)
@@ -16,6 +17,7 @@ module Game
   , createSpyState
   , updateHintFromPlayer
   , updateHintFromSpy
+  , updateSelectedCell
 ) where
 
 import Lens.Micro (ix, (%~), (&))
@@ -25,7 +27,7 @@ import Network.Socket (Socket)
 import qualified Data.ByteString.Char8 as C
 
 import Network.Socket 
--- import Data.List.Split
+import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
 import Control.Monad.IO.Class (MonadIO(liftIO))
@@ -202,6 +204,7 @@ instance GameState SpyGameState where
                                             LeftD -> Loc r (wrapAroundCursor (c-1) gridSize)
                                             RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
 
+    selectCard :: SpyGameState -> SpyGameState
     selectCard sb = updateSCard updateFn sb
                         where
                             updateFn :: SpyCell -> SpyCell
@@ -210,7 +213,7 @@ instance GameState SpyGameState where
                                                 SCell l w False c -> SCell l w True c
     getCardColor game = cColor
                             where (Loc x y) = sPlayerCursor game
-                                  SCell _ _ _ cColor = spyGrid game !! x !! y
+                                  SCell _ _ _ cColor  = spyGrid game !! x !! y
 
     updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor),
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
@@ -417,16 +420,23 @@ updateHintFromPlayer msg sb = sb { sSpyHint = (SHint msg 4) }
 
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
-
 updateHintFromSpy msg pb = pb { pSpyHint = (SHint msg 8) }
 
-
+updateSelectedCell :: String -> SpyGameState -> SpyGameState
+updateSelectedCell msg sb  = do
+                                let splitMsg = splitOn " " msg
+                                let row = read(splitMsg !! 1) :: Int
+                                let col = read(splitMsg !! 2) :: Int
+                                sb { sPlayerCursor = Loc row col} 
         
 
+-- selectModifiedCard :: String -> SpyGameState -> SpyGameState
+-- selectModifiedCard msg sb = 
 
-                   
-
-
-
-
-
+-- selectCard :: SpyGameState -> SpyGameState
+--     selectCard sb = updateSCard updateFn sb
+--                         where
+--                             updateFn :: SpyCell -> SpyCell
+--                             updateFn cell = case cell of
+--                                                 SCell l w True c -> SCell l w True c
+--                                                 SCell l w False c -> SCell l w True c

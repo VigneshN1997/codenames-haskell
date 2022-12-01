@@ -43,6 +43,7 @@ library
     , containers
     , microlens
     , network
+    , split
     , text
     , vector
     , vty
@@ -115,6 +116,7 @@ executable codenames-haskell-exe
     , containers
     , microlens
     , network
+    , split
     , text
     , vector
     , vty
@@ -137,6 +139,7 @@ test-suite codenames-haskell-test
     , containers
     , microlens
     , network
+    , split
     , text
     , vector
     , vty

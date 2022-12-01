@@ -106,8 +106,9 @@ handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
     V.KLeft  -> M.continue $ (PlayerView  $ (moveCursor LeftD playerGameState))
     V.KRight -> M.continue $ (PlayerView  $ (moveCursor RightD playerGameState))
     V.KEnter -> do
-                    liftIO $ (sendMess (pSock playerGameState) (show (pSpyHint playerGameState)))
+                    liftIO $ (sendMess (pSock playerGameState) (show (pPlayerCursor playerGameState)))
                     M.continue $ (PlayerView  $ (updateGame playerGameState))
+    V.KEsc   -> halt (PlayerView playerGameState)
     _        -> M.continue $ (PlayerView playerGameState)
 -- handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)
 
@@ -120,3 +121,4 @@ handleKeyPlayer (PlayerView playerGameState) (AppEvent (ConnectionTick csReceive
 
 handleKeyPlayer (PlayerView playerGameState) _ = M.continue (PlayerView playerGameState)
 
+handleKeyPlayer _ _ = undefined
