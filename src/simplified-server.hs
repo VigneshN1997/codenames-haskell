@@ -55,7 +55,7 @@ main = do
                 message <- recvMess comm_sock
                 writeBChan eventChan $ ConnectionTick (S_Str message)
                 loop
-        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (createSpyState egwordList downloadedColorList comm_sock))
+        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) "", _spyState = (createSpyState egwordList downloadedColorList comm_sock)})) 
         return ()
 
 

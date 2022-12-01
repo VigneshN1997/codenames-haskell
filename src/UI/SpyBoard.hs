@@ -1,6 +1,7 @@
 module UI.SpyBoard (
     drawSpyBoard,
-    handleSEvent
+    handleSEvent,
+    mkHintForm
 ) where
 
 import Game
@@ -26,6 +27,26 @@ import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import qualified Data.ByteString.Char8 as CH
+
+import Brick.Forms
+  ( Form
+  , newForm
+  , formState
+  , formFocus
+  , setFieldValid
+  , renderForm
+  , handleFormEvent
+  , invalidFields
+  , allFieldsValid
+  , focusedFormInputAttr
+  , invalidFormInputAttr
+  , checkboxField
+  , radioField
+  , editShowableField
+  , editTextField
+  , editPasswordField
+  , (@@=)
+  )
 
 
 
@@ -120,7 +141,7 @@ drawPlayerStats sb = ((getBlueTeamScoreBoard (sBlueTeamScore sb)) <=> (getRedTea
     where SHint hintWord hintNum = sSpyHint sb
 
 drawSpyBoard :: SpyGameState -> [Widget Name]
-drawSpyBoard sb = [(drawGrid sb)<=> (drawPlayerStats sb)]
+drawSpyBoard sb = [(drawGrid sb) <=> (drawPlayerStats sb)]
 
 
 -- g :: SpyGrid
@@ -131,17 +152,36 @@ drawSpyBoard sb = [(drawGrid sb)<=> (drawPlayerStats sb)]
 --             plgrid = g
 --         }
 
-handleSEvent :: Codenames -> BrickEvent Name ConnectionTick -> EventM Name (Next Codenames)
-handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
-  case key of
-    V.KUp    -> continue $ SpyView (moveCursor UpD spyGameState)
-    V.KDown  -> continue $ SpyView (moveCursor DownD spyGameState)
-    V.KLeft  -> continue $ SpyView (moveCursor LeftD spyGameState)
-    V.KRight -> continue $ SpyView (moveCursor RightD spyGameState)
-    V.KEnter -> do
-                    liftIO $ (sendMessFromServer (sSock spyGameState) "SERVER MSG")
-                    continue $ SpyView (updateGame spyGameState)
-    _        -> continue $ SpyView spyGameState
+
+-- mkHintForm :: SpyForm -> Form SpyForm ConnectionTick Hint
+-- mkHintForm =
+--     let label s w = padBottom (Pad 1) $
+--                     (vLimit 1 $ hLimit 15 $ str s <+> fill ' ') <+> w
+--     in newForm [ label "Word And Count" @@=
+--                    editTextField wordCount WordCountField (Just 1)
+--             --    , label "Count" @@=
+--             --        editShowableField count CountField
+--                ]
+
+-- | Draws the user input space
+drawInput :: SpyStateAndForm -> Widget Hint
+drawInput g = addBorder "Word and Count" (E.renderEditor (txt . T.unlines) True (g ^. wordCount))
+
+handleSEvent :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next Codenames)
+handleSEvent (SpyView sfb) (VtyEvent ev) = 
+  case ev of
+    V.EvKey V.KEnter [] -> continue $ SpyView sfb
+    _ -> continue $ SpyView =<< updateGameState sfb ev 
+-- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
+  -- case key of
+  --   V.KUp    -> continue $ SpyView (moveCursor UpD spyGameState)
+  --   V.KDown  -> continue $ SpyView (moveCursor DownD spyGameState)
+  --   V.KLeft  -> continue $ SpyView (moveCursor LeftD spyGameState)
+  --   V.KRight -> continue $ SpyView (moveCursor RightD spyGameState)
+  --   V.KEnter -> do
+  --                   liftIO $ (sendMessFromServer (sSock spyGameState) "SERVER MSG")
+  --                   continue $ SpyView (updateGame spyGameState)
+  --   _        -> continue $ SpyView spyGameState
 
 -- handleEvent :: SpyBoard -> BrickEvent () e -> EventM () (Next SpyBoard)
 -- handleEvent sb (VtyEvent (V.EvKey key [V.MCtrl]))  = 
@@ -149,6 +189,12 @@ handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
 --         -- Quit
 --         V.KChar 'q' -> halt sb
 --         _           ->  continue sb
+
+updateGameState :: SpyStateAndForm -> Event -> EventM Hint SpyStateAndForm
+updateGameState g ev = do
+  let oldState = g ^. spyState
+      newState = oldState {sSpyHint = unlines $ E.getEditContents $ g ^. wordCount}
+  return g {_spyState = newState}
 
 handleSEvent (SpyView spyGameState) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of

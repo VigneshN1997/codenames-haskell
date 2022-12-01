@@ -38,8 +38,8 @@ drawGame :: Codenames -> [Widget Name]
 drawGame g = case g of
     -- MainMenu menu -> drawList menu
     PlayerView pb -> drawPlayerBoard pb
-    SpyView sb    -> drawSpyBoard sb
-
+    SpyView sfb    -> drawSpyBoard sb <=> drawInput sfb
+      where sb = sfb ^. spyState
 -- | Handle main menu key events
 -- handleKeyMainMenu :: MenuList -> BrickEvent Name () -> EventM Name (Next Codenames)
 -- handleKeyMainMenu l (VtyEvent e) = case e of

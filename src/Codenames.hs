@@ -22,7 +22,7 @@ type MenuList = L.List Name String
 data Codenames
   =   MainMenu MenuList
     | PlayerView PlayerGameState
-    | SpyView SpyGameState
+    | SpyView SpyStateAndForm
 
 data MessageS = S_Str String
 
