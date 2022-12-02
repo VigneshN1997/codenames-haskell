@@ -18,6 +18,7 @@ module Game
   , createSpyState
   , updateHintFromPlayer
   , updateHintFromSpy
+  , updateCurrentPlayerHint
   , SpyStateAndForm(..)
   , Hint(..)
   , wordCount
@@ -215,6 +216,7 @@ instance GameState PlayerGameState where
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
+                                            pSpyHint = updateCurrentPlayerHint (curHint),
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
 
                                             }
@@ -222,9 +224,7 @@ instance GameState PlayerGameState where
                                                   teamColor = pTeamTurn game
                                                   redScore = pRedTeamScore game
                                                   blueScore = pBlueTeamScore game
-
-                                                  
-
+                                                  curHint   = pSpyHint game
     updateGame game = if (isPCardClicked currCard)
                         then game
                         else updateCurrentTurnsAndScore (selectCard game)
@@ -469,10 +469,21 @@ updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
 
 updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
+updateCurrentPlayerHint :: String -> String
+updateCurrentPlayerHint curHint =  let 
+                                    hintSplit = splitOn "," curHint
+                                    clueNum   =  (read (hintSplit!!1) :: Int) - 1 in
+                                    if clueNum > 0
+                                        then
+                                            hintSplit!!0 ++ "," ++ show clueNum
+                                    else
+                                        hintSplit!!0 ++ "," ++ "0"
+
+                            
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
 
-updateHintFromSpy msg pb = pb { pSpyHint = (msg) }
+updateHintFromSpy msg pb = pb { pSpyHint = msg}
 
 updateSelectedCell :: String -> SpyGameState -> SpyGameState
 updateSelectedCell msg sb  = do

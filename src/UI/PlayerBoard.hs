@@ -111,7 +111,7 @@ handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
     V.KRight -> M.continue $ (PlayerView  $ (moveCursor RightD playerGameState))
     V.KEnter -> do
                     liftIO $ (sendMess (pSock playerGameState) (show (pPlayerCursor playerGameState)))
-                    M.continue $ (PlayerView  $ (updateGame playerGameState))
+                    M.continue $ PlayerView  $ updateGame playerGameState
     V.KEsc   -> halt (PlayerView playerGameState)
     _        -> M.continue $ (PlayerView playerGameState)
 -- handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)
