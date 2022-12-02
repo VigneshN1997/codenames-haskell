@@ -115,6 +115,14 @@ data Direction
   | RightD
   deriving (Show)
 
+
+convertToColor :: String -> CardColor
+convertToColor "Red" = Red
+convertToColor "Blue" = Blue
+convertToColor "Black" = Black
+convertToColor "Yellow" = Yellow
+
+
 wrapAroundCursor :: Int -> Int -> Int
 wrapAroundCursor val n
     | val >= n = val - n
@@ -124,11 +132,6 @@ wrapAroundCursor val n
 -- https://stackoverflow.com/questions/4597820/does-haskell-have-list-slices-i-e-python
 slice :: Int -> Int -> [a] -> [a]
 slice from to xs = take (to - from + 1) (drop from xs)
-
-downloadedColorList :: [CardColor]
-downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
-egwordList :: [String]
-egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
 
 gridSize::Int
 gridSize = 5
@@ -156,10 +159,10 @@ data PlayerGameState = PlayerGameState {
 createPlayerCard :: (String, CardColor, Idx) -> PlayerCell
 createPlayerCard (word, color, idx) = PCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
-createPlayerState :: [String] -> [CardColor] -> Socket -> PlayerGameState
+createPlayerState :: [String] -> [String] -> Socket -> PlayerGameState
 createPlayerState wordlis colors sock = createBoard cellList
         where
-            tupleList = zip3 wordlis colors [0..((gridSize*gridSize) - 1)]
+            tupleList = zip3 wordlis (map convertToColor colors) [0..((gridSize*gridSize) - 1)]
             cellList = map createPlayerCard tupleList
             createBoard :: [PlayerCell] -> PlayerGameState 
             createBoard cls = PlayerGameState 
@@ -168,8 +171,8 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     playerGrid = map (getSlice cls) [0..(gridSize - 1)],
                                     pRedTeamScore = 0,
                                     pBlueTeamScore = 0,
-                                    pWordList = egwordList,
-                                    pCardColor = downloadedColorList,
+                                    pWordList = wordlis,
+                                    pCardColor = (map convertToColor colors),
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
                                     pSpyHint = "Player Game Hint, 2",
@@ -358,10 +361,10 @@ data SpyGameState = SpyGameState {
 createSpyCard :: (String, CardColor, Idx) -> SpyCell
 createSpyCard (word, color, idx) = SCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
-createSpyState :: [String] -> [CardColor] -> Socket -> SpyGameState
+createSpyState :: [String] -> [String] -> Socket -> SpyGameState
 createSpyState wordlis colors sock = createBoard cellList
         where
-            tupleList = zip3 wordlis colors [0..((gridSize*gridSize) - 1)]
+            tupleList = zip3 wordlis (map convertToColor colors) [0..((gridSize*gridSize) - 1)]
             cellList = map createSpyCard tupleList
             createBoard :: [SpyCell] -> SpyGameState 
             createBoard cls = SpyGameState 
@@ -370,8 +373,8 @@ createSpyState wordlis colors sock = createBoard cellList
                                     spyGrid = map (getSlice cls) [0..(gridSize - 1)],
                                     sRedTeamScore = 0,
                                     sBlueTeamScore = 0,
-                                    sWordList = egwordList,
-                                    sCardColor = downloadedColorList,
+                                    sWordList = wordlis,
+                                    sCardColor = (map convertToColor colors),
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
                                     sSpyHint = "Spy Game Hint, 2", 

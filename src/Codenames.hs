@@ -4,9 +4,7 @@ module Codenames (
     ConnectionTick(..),
     MessageS(..),
     Name(..),
-    MenuList,
-    downloadedColorList,
-    egwordList
+    MenuList
 ) where
 
 import Game
@@ -38,10 +36,10 @@ getMainMenu = MainMenu menuOptions
 -- initialGameSpy :: Codenames
 -- initialGameSpy = SpyView sb
 
-downloadedColorList :: [CardColor]
-downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
-egwordList :: [String]
-egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
+-- downloadedColorList :: [CardColor]
+-- downloadedColorList = [Red, Red, Red, Red, Red, Red, Red, Red, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Blue, Black, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow, Yellow]
+-- egwordList :: [String]
+-- egwordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
 
 -- pb :: PlayerGameState
 -- pb = createPlayerState egwordList downloadedColorList

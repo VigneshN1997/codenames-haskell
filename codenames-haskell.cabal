@@ -46,6 +46,7 @@ library
     , microlens-mtl
     , microlens-th
     , network
+    , random
     , split
     , text
     , vector
@@ -75,6 +76,7 @@ executable chat-client-exe
     , microlens-mtl
     , microlens-th
     , network
+    , random
     , split
     , text
     , vector
@@ -104,6 +106,7 @@ executable chat-server-exe
     , microlens-mtl
     , microlens-th
     , network
+    , random
     , split
     , text
     , vector
@@ -128,6 +131,7 @@ executable codenames-haskell-exe
     , microlens-mtl
     , microlens-th
     , network
+    , random
     , split
     , text
     , vector
@@ -154,6 +158,7 @@ test-suite codenames-haskell-test
     , microlens-mtl
     , microlens-th
     , network
+    , random
     , split
     , text
     , vector

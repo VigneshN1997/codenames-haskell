@@ -21,6 +21,10 @@ import UI.Styles
 import UI.GameUI
 import qualified Brick.Widgets.Edit as E
 import qualified Data.Text as T
+import System.Random
+
+import qualified Data.Text.IO as Text
+import qualified Data.ByteString.Char8 as CH
 
 -- helper function to obtain a socket connection
 openConnection :: IO Socket
@@ -44,6 +48,15 @@ setupServer = do
   -- runTCPEchoServerForever sock 0
   return conn
 
+-- Loads words from a text file into a list.
+getWords :: FilePath -> IO [String]
+getWords path = do contents <- readFile path
+                   return (lines contents)
+
+sendMess :: Socket -> String -> IO ()
+sendMess sock s = do
+--   sock <- openConnection
+  sendAll sock $ CH.pack s
 
 main :: IO ()
 main = do
@@ -52,12 +65,17 @@ main = do
                       v <- mkVty =<< standardIOConfig
                       return v
         initialVty <- buildVty
+        filenum <- randomRIO (1, 16) :: IO Int
+        _ <- sendMess comm_sock (show filenum)
         eventChan <- Brick.BChan.newBChan 10
         reader <- forkIO $ fix $ \loop -> do
                 message <- recvMess comm_sock
                 writeBChan eventChan $ ConnectionTick (S_Str message)
                 loop
-        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) (T.pack ""), _spyState = (createSpyState egwordList downloadedColorList comm_sock)})) 
+        
+        wordLis <- getWords ("resources/words_files/" ++ (show filenum)  ++".txt")
+        colorLis <- getWords ("resources/colors_files/" ++ (show filenum)  ++".txt")
+        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) (T.pack ""), _spyState = (createSpyState wordLis colorLis comm_sock)})) 
         return ()
 
 
@@ -76,10 +94,10 @@ spyApp =
 
 
 
-sendMess :: Socket -> String -> IO ()
-sendMess sock s = do
-                -- sock <- openConnection
-                sendAll sock $ C.pack s
+-- sendMess :: Socket -> String -> IO ()
+-- sendMess sock s = do
+--                 -- sock <- openConnection
+--                 sendAll sock $ C.pack s
 
 
 recvMess :: Socket -> IO [Char]

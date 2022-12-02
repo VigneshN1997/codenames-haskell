@@ -13,6 +13,11 @@ import Control.Monad.Fix (fix)
 import Graphics.Vty
 import qualified Data.ByteString.Char8 as C
 
+import qualified Data.Text as T
+import System.Random
+
+import qualified Data.Text.IO as Text
+
 
 import Codenames
 import Game
@@ -61,6 +66,10 @@ openConnection = do
 --                 threadDelay 10000
 --                 recurConv sock
 
+getWords :: FilePath -> IO [String]
+getWords path = do contents <- readFile path
+                   return (lines contents)
+
 main :: IO ()
 main = do
   print "Inside client:"
@@ -69,12 +78,15 @@ main = do
                       v <- mkVty =<< standardIOConfig
                       return v
   initialVty <- buildVty
+  recvFileNum <- recvMess sock
   eventChan <- Brick.BChan.newBChan 10
   reader <- forkIO $ fix $ \loop -> do
               message <- recvMess sock
               writeBChan eventChan $ ConnectionTick (S_Str message)
               loop
-  endState <- M.customMain initialVty buildVty (Just eventChan) playerApp (PlayerView (createPlayerState egwordList downloadedColorList sock))
+  wordLis <- getWords ("resources/words_files/" ++ recvFileNum  ++".txt")
+  colorLis <- getWords ("resources/colors_files/" ++ recvFileNum  ++".txt")
+  endState <- M.customMain initialVty buildVty (Just eventChan) playerApp (PlayerView (createPlayerState wordLis colorLis sock))
   return ()
 
 -- | Brick app for handling a codenames game

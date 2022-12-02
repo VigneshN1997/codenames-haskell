@@ -33,6 +33,7 @@ dependencies:
 - bytestring
 - vector
 - split
+- random
 
 ghc-options:
 - -Wall
