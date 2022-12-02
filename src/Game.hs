@@ -235,7 +235,8 @@ instance GameState PlayerGameState where
                             currCard = playerGrid game !! x !! y
     updateSpyHint game newHint = game {pSpyHint = newHint}
 
-    endTurn game = game {pTeamTurn = switchTeam teamColor}
+    endTurn game = game {pTeamTurn = switchTeam teamColor,
+                         pSpyHint = "Waiting for Hint"}
                         where
                             teamColor = pTeamTurn game
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
@@ -291,7 +292,8 @@ instance GameState SpyGameState where
                             currCard = spyGrid game !! x !! y
     updateSpyHint game newHint = game {sSpyHint = newHint}
 
-    endTurn game = game {sTeamTurn = switchTeam teamColor}
+    endTurn game = game {sTeamTurn = switchTeam teamColor,
+                         sSpyHint  = "Waiting for Hint"}
                         where
                             teamColor = sTeamTurn game
 
