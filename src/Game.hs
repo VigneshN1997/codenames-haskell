@@ -217,7 +217,7 @@ instance GameState PlayerGameState where
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
-                                            pSpyHint = updateCurrentHint (curHint),
+                                            pSpyHint = updateCurrentHint curHint,
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
 
                                             }
@@ -487,7 +487,7 @@ updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
 
 getHintCount :: String -> Int
-getHintCount curHint = read (splitOn "," curHint !! 1) :: Int
+getHintCount curHint = (read (splitOn "," curHint !! 1) :: Int) - 1
 
 updateCurrentHint :: String -> String
 updateCurrentHint curHint =  let 
