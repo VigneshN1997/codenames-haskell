@@ -7,8 +7,8 @@ import Game
 import Codenames
 import UI.Styles
 
-import Brick 
-import Brick.Types 
+import Brick
+import Brick.Types
 import Foreign.Marshal.Unsafe
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
@@ -17,12 +17,12 @@ import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
 import Lens.Micro.Mtl (use, (.=), zoom)
 
-import Control.Concurrent       
-import Control.Monad             
+import Control.Concurrent
+import Control.Monad
 -- import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as C
 
-import Network.Socket 
+import Network.Socket
 -- import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
@@ -81,7 +81,7 @@ openConnection = do
 
 
 runTCPEchoServerForever :: (Eq a, Num a) => Socket -> a -> IO b
-runTCPEchoServerForever sock msgNum = do 
+runTCPEchoServerForever sock msgNum = do
   (conn, _)     <- accept sock
   _ <- forkIO (rrLoop conn) -- conn and sock are same
   _ <- forkIO (wLoop conn)
@@ -119,8 +119,8 @@ drawSpyCard (SCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if
                                                                                     else getClickedNormalStyle (word ++ "******") color
 drawSpyCard (SCell (Loc cardx cardy) word False color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
                                                                                     then getClickedCursorStyle word color
-                                                                                    else getClickedNormalStyle word color                                                                                    
-                                                                                        
+                                                                                    else getClickedNormalStyle word color
+
 
 drawGrid :: SpyGameState -> Widget Hint
 drawGrid sb = withBorderStyle BS.unicodeBold
@@ -132,8 +132,13 @@ drawGrid sb = withBorderStyle BS.unicodeBold
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawSpyCard pcard currCursor) | pcard <- row]
 
 
-renderHint :: String -> Widget Hint
-renderHint hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
+renderHint :: CardColor -> String -> Widget Hint
+
+renderHint Blue _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Blue) $ str " Blue Team Won"
+
+renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Red) $ str " Red Team Won"
+
+renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ str hintW
 
 getRedTeamScoreBoard :: Int -> Widget Hint
 getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
@@ -146,7 +151,7 @@ renderTurn False playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicod
 renderTurn True playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Spy's Turn")
 
 drawPlayerStats :: SpyGameState -> Widget Hint
-drawPlayerStats sb = ((getBlueTeamScoreBoard (sBlueTeamScore sb)) <=> (getRedTeamScoreBoard (sRedTeamScore sb))) <+> ((padLeft Max (renderHint hintWordCount)) <=> (padLeft Max (renderTurn (sSpyMastersTurn sb) (sTeamTurn sb))))
+drawPlayerStats sb = (getBlueTeamScoreBoard (sBlueTeamScore sb) <=> getRedTeamScoreBoard (sRedTeamScore sb)) <+> (padLeft Max (renderHint (sWinner sb) hintWordCount) <=> padLeft Max (renderTurn (sSpyMastersTurn sb) (sTeamTurn sb)))
     where hintWordCount = sSpyHint sb
 
 drawSpyBoard :: SpyGameState -> [Widget Hint]
@@ -182,7 +187,7 @@ handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
                                     S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (updateGame $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
 
-handleSEvent (SpyView sfb) (VtyEvent ev) = 
+handleSEvent (SpyView sfb) (VtyEvent ev) =
   case ev of
     V.EvKey V.KEnter [] -> continue $ SpyView sfb
     _ -> continue . SpyView =<< (updateGameState sfb ev)
@@ -206,7 +211,7 @@ handleSEvent (SpyView sfb) (VtyEvent ev) =
 
 updateGameState :: SpyStateAndForm -> Event -> EventM Hint SpyStateAndForm
 updateGameState g ev = do
-  gEdited <- handleEventLensed g wordCount E.handleEditorEvent ev 
+  gEdited <- handleEventLensed g wordCount E.handleEditorEvent ev
   let oldState = g ^. spyState
       newState = oldState {sSpyHint = T.unpack $ T.unlines $ E.getEditContents $ gEdited ^. wordCount}
   return gEdited {_spyState = newState}

@@ -148,7 +148,8 @@ data PlayerGameState = PlayerGameState {
     pSpyHint       :: SpyHint,
     pPlayerCursor  :: Coord,
     pSpyMastersTurn :: Bool,
-    pSock           :: Socket
+    pSock           :: Socket,
+    pWinner        :: CardColor
 } deriving (Show)
 
 -- utility functions
@@ -176,7 +177,8 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
                                     pSpyHint = "Waiting for Hint",
-                                    pSock = sock
+                                    pSock = sock,
+                                    pWinner = Yellow
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -212,12 +214,17 @@ instance GameState PlayerGameState where
     updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor),
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
-                                            pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor
+                                            pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
+                                            pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
+
                                             }
                                             where cColor = getCardColor game
                                                   teamColor = pTeamTurn game
                                                   redScore = pRedTeamScore game
                                                   blueScore = pBlueTeamScore game
+
+                                                  
+
     updateGame game = if (isPCardClicked currCard)
                         then game
                         else updateCurrentTurnsAndScore (selectCard game)
@@ -227,6 +234,14 @@ instance GameState PlayerGameState where
                             currCard = playerGrid game !! x !! y
     updateSpyHint game newHint = game {pSpyHint = newHint}
 
+updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
+updateWinner _ _ Red (Black) = Blue
+updateWinner _ _ Blue (Black) = Red
+updateWinner 9 _ Blue _ = Red
+updateWinner _ 8 Blue _ = Blue
+
+updateWinner _ _ _ _ = Yellow
+-- 
 instance GameState SpyGameState where
     moveCursor direction game = game {sPlayerCursor = cur}
                                 where
@@ -250,7 +265,8 @@ instance GameState SpyGameState where
     updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor),
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
                                         sBlueTeamScore = updateBlueTeamScore cColor blueScore,
-                                        sSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor
+                                        sSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
+                                        sWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
                                         }
                                         where cColor = getCardColor game
                                               teamColor = sTeamTurn game
@@ -354,7 +370,8 @@ data SpyGameState = SpyGameState {
     sSpyHint        :: SpyHint,
     sSpyMastersTurn :: Bool,
     sPlayerCursor   :: Coord,
-    sSock           :: Socket
+    sSock           :: Socket,
+    sWinner         :: CardColor
 } deriving (Show)
 
 
@@ -378,7 +395,8 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
                                     sSpyHint = "Waiting for Spy Hint", 
-                                    sSock = sock
+                                    sSock = sock,
+                                    sWinner = Yellow
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 

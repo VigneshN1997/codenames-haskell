@@ -8,7 +8,7 @@ import Game
 import Codenames
 import UI.Styles
 
-import Control.Concurrent       
+import Control.Concurrent
 import Control.Monad.IO.Class
 
 import Brick
@@ -50,7 +50,7 @@ drawPlayerCard :: PlayerCell -> Coord -> Widget Hint
 drawPlayerCard (PCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
                                                                                     then getClickedCursorStyle word color
                                                                                     else getClickedNormalStyle word color
-                                                                                        
+
 drawPlayerCard (PCell (Loc cardx cardy) word False color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
                                                                                     then getUnclickedCursorStyle word color
                                                                                     else getUnclickedNormalStyle word color
@@ -65,8 +65,12 @@ drawGrid pb = withBorderStyle BS.unicodeBold
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
 -- | Render hint given by the spymaster
-renderHint :: String -> Widget Hint
-renderHint hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
+renderHint :: CardColor -> String -> Widget Hint
+renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Red) $ str " Red Team Won"
+
+renderHint Blue _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Blue) $ str " Blue Team Won"
+
+renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
 
 -- | Render red team's score
 getRedTeamScoreBoard :: Int -> Widget Hint
@@ -82,7 +86,7 @@ renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicod
 
 -- | Render the player side stats for each team
 drawPlayerStats :: PlayerGameState -> Widget Hint
-drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWordCount)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
+drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamScoreBoard (pRedTeamScore pb)) <+> (padLeft Max (renderHint (pWinner pb) hintWordCount) <=> padLeft Max (renderPlayerTurn (pTeamTurn pb)))
     where hintWordCount = pSpyHint pb
 
 -- | Render the player side view
