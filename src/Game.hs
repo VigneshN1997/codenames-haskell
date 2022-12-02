@@ -18,7 +18,7 @@ module Game
   , createSpyState
   , updateHintFromPlayer
   , updateHintFromSpy
-  , updateCurrentPlayerHint
+--   , updateCurrentHint
   , SpyStateAndForm(..)
   , Hint(..)
   , wordCount
@@ -212,11 +212,11 @@ instance GameState PlayerGameState where
                             where (Loc x y) = pPlayerCursor game
                                   PCell _ _ _ cColor = playerGrid game !! x !! y
 
-    updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor),
+    updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor) (getHintCount curHint),
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
-                                            pSpyHint = updateCurrentPlayerHint (curHint),
+                                            pSpyHint = updateCurrentHint (curHint),
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
 
                                             }
@@ -262,16 +262,18 @@ instance GameState SpyGameState where
                             where (Loc x y) = sPlayerCursor game
                                   SCell _ _ _ cColor  = spyGrid game !! x !! y
 
-    updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor),
+    updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor) (getHintCount curHint),
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
                                         sBlueTeamScore = updateBlueTeamScore cColor blueScore,
-                                        sSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
+                                        sSpyMastersTurn = updateSpyMastersTurn teamColor cColor,
+                                        sSpyHint = updateCurrentHint curHint,
                                         sWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
                                         }
                                         where cColor = getCardColor game
                                               teamColor = sTeamTurn game
                                               redScore = sRedTeamScore game
                                               blueScore = sBlueTeamScore game
+                                              curHint = sSpyHint game
     updateGame game = if (isSCardClicked currCard)
                         then game
                         else updateCurrentTurnsAndScore (selectCard game)
@@ -316,9 +318,11 @@ isPCardClicked (PCell _ _ isClicked _) = isClicked
 
 -- common functions between both game states
 
-updateTeam :: CardColor -> CardColor -> CardColor
-updateTeam Red cColor = if cColor == Red then Red else Blue
-updateTeam Blue cColor = if cColor == Blue then Blue else Red
+updateTeam :: CardColor -> CardColor -> Int -> CardColor
+updateTeam Red _ 0       = Blue
+updateTeam Blue _ 0      = Red
+updateTeam Red cColor _  = if cColor == Red then Red else Blue
+updateTeam Blue cColor _ = if cColor == Blue then Blue else Red
 
 updateRedTeamScore :: CardColor -> Int -> Int
 updateRedTeamScore Red score  = score + 1
@@ -469,15 +473,20 @@ updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
 
 updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
-updateCurrentPlayerHint :: String -> String
-updateCurrentPlayerHint curHint =  let 
+
+getHintCount :: String -> Int
+getHintCount curHint = read (splitOn "," curHint !! 1) :: Int
+
+updateCurrentHint :: String -> String
+updateCurrentHint curHint =  let 
                                     hintSplit = splitOn "," curHint
                                     clueNum   =  (read (hintSplit!!1) :: Int) - 1 in
                                     if clueNum > 0
                                         then
                                             hintSplit!!0 ++ "," ++ show clueNum
                                     else
-                                        hintSplit!!0 ++ "," ++ "0"
+                                        "Waiting for Hint"
+                                        -- hintSplit!!0 ++ "," ++ "0"
 
                             
 
