@@ -185,6 +185,8 @@ handleSEvent :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next
 
 handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
+                                    S_Str "end" -> continue $ SpyView SpyStateAndForm { _spyState = (endTurn (_spyState sfb)), _wordCount = (_wordCount sfb)}
+
                                     S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (updateGame $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
 
 handleSEvent (SpyView sfb) (VtyEvent ev) =

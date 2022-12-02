@@ -61,7 +61,7 @@ import qualified Data.ByteString.Char8 as C
 import Network.Socket 
 import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
-import System.IO()
+import System.IO(IOMode (ReadMode))
 import Control.Monad.IO.Class (MonadIO(liftIO))
 
 
@@ -190,6 +190,7 @@ class GameState a where
     updateCurrentTurnsAndScore :: a -> a
     updateGame :: a -> a
     updateSpyHint :: a -> SpyHint -> a
+    endTurn :: a -> a
 
 
 instance GameState PlayerGameState where
@@ -234,6 +235,9 @@ instance GameState PlayerGameState where
                             currCard = playerGrid game !! x !! y
     updateSpyHint game newHint = game {pSpyHint = newHint}
 
+    endTurn game = game {pTeamTurn = switchTeam teamColor}
+                        where
+                            teamColor = pTeamTurn game
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
 updateWinner _ _ Red (Black) = Blue
 updateWinner _ _ Blue (Black) = Red
@@ -241,7 +245,11 @@ updateWinner 9 _ Blue _ = Red
 updateWinner _ 8 Blue _ = Blue
 
 updateWinner _ _ _ _ = Yellow
--- 
+ 
+switchTeam :: CardColor -> CardColor
+switchTeam Blue = Red
+switchTeam Red = Blue
+
 instance GameState SpyGameState where
     moveCursor direction game = game {sPlayerCursor = cur}
                                 where
@@ -280,6 +288,10 @@ instance GameState SpyGameState where
                             (Loc x y) = sPlayerCursor game
                             currCard = spyGrid game !! x !! y
     updateSpyHint game newHint = game {sSpyHint = newHint}
+
+    endTurn game = game {sTeamTurn = switchTeam teamColor}
+                        where
+                            teamColor = sTeamTurn game
 
 -- moveCursor :: Direction -> PlayerGameState -> PlayerGameState
 -- moveCursor direction game = game {playerCursor = cur}
