@@ -65,8 +65,8 @@ drawGrid pb = withBorderStyle BS.unicodeBold
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawPlayerCard pcard currCursor) | pcard <- row]
 
 -- | Render hint given by the spymaster
-renderHint :: String -> Int -> Widget Hint
-renderHint hintW hintNumW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str (hintW ++ "," ++ (show hintNumW)))
+renderHint :: String -> Widget Hint
+renderHint hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
 
 -- | Render red team's score
 getRedTeamScoreBoard :: Int -> Widget Hint
@@ -82,8 +82,8 @@ renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicod
 
 -- | Render the player side stats for each team
 drawPlayerStats :: PlayerGameState -> Widget Hint
-drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWord 5)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
-    where hintWord = pSpyHint pb
+drawPlayerStats pb = ((getBlueTeamScoreBoard (pBlueTeamScore pb)) <=> (getRedTeamScoreBoard (pRedTeamScore pb))) <+> ((padLeft Max (renderHint hintWordCount)) <=> (padLeft Max (renderPlayerTurn (pTeamTurn pb))))
+    where hintWordCount = pSpyHint pb
 
 -- | Render the player side view
 drawPlayerBoard :: PlayerGameState -> [Widget Hint]

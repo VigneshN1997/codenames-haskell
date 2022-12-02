@@ -27,7 +27,6 @@ import UI.GameUI
 
 recvMess :: Socket -> IO [Char]
 recvMess sock = do
---   sock <- openConnection
   x <- recv sock 1024
   return (C.unpack x)
 
@@ -38,33 +37,6 @@ openConnection = do
   sock <- socket (addrFamily serveraddr) Stream defaultProtocol
   connect sock (addrAddress serveraddr)
   return sock
-
--- loopTry :: Socket -> IO ()
--- loopTry sock = do
---   inp <- getLine
---   case inp of
---     "S" -> do
---       print ("Recieved input: " ++ inp)
---       sendMess sock "Enter2,2"
---       sendMess sock "Next Msg from client"
---       loopTry sock
---     "R" -> do
---       print ("Recieved input: " ++ inp)
---       message <- recvMess sock
---       let splitString = splitOn "," message
---       print ("Client:loopTry recieved  Clue: " ++ splitString !! 0 ++ "  Number : " ++ splitString !! 1)
---       loopTry sock
---     _ -> do
---       print ("Recieved input: " ++ inp)
---       return ()
-
--- recurConv :: Socket -> IO()
--- recurConv sock = do
---                 sendMess sock "Initial Msg from client"
---                 message <- recvMess sock
---                 print ("Client: " ++ message)
---                 threadDelay 10000
---                 recurConv sock
 
 getWords :: FilePath -> IO [String]
 getWords path = do contents <- readFile path

@@ -110,15 +110,8 @@ getColorBgStyle Yellow = styleYellowCell
 getClickedCursorStyle :: String -> CardColor -> Widget Hint
 getClickedCursorStyle word color = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
 
-getUnclickedCursorStyle :: String -> CardColor -> Widget Hint
-getUnclickedCursorStyle word _ = withBorderStyle cursorBorderStyle $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
-
 getClickedNormalStyle :: String -> CardColor -> Widget Hint
 getClickedNormalStyle word color = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr (getColorBgStyle color) $ BW.padLeftRight 4 $ str word
-
-
-getUnclickedNormalStyle ::  String -> CardColor -> Widget Hint
-getUnclickedNormalStyle word _ = withBorderStyle BS.unicodeBold $ B.border $ C.hCenter  $ withAttr styleUnclickedCell $ str word
 
 drawSpyCard :: SpyCell -> Coord -> Widget Hint
 drawSpyCard (SCell (Loc cardx cardy) word True color) (Loc cursorx cursory) = if (and [(cursorx == cardx), (cursory == cardy)])
@@ -139,8 +132,8 @@ drawGrid sb = withBorderStyle BS.unicodeBold
         cardsInRow row = [vLimit 30 $ hLimit 25 $ (drawSpyCard pcard currCursor) | pcard <- row]
 
 
-renderHint :: String -> Int -> Widget Hint
-renderHint hintW hintNumW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str (hintW ++ "," ++ (show hintNumW)))
+renderHint :: String -> Widget Hint
+renderHint hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
 
 getRedTeamScoreBoard :: Int -> Widget Hint
 getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
@@ -153,8 +146,8 @@ renderTurn False playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicod
 renderTurn True playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Spy's Turn")
 
 drawPlayerStats :: SpyGameState -> Widget Hint
-drawPlayerStats sb = ((getBlueTeamScoreBoard (sBlueTeamScore sb)) <=> (getRedTeamScoreBoard (sRedTeamScore sb))) <+> ((padLeft Max (renderHint hintWord 5)) <=> (padLeft Max (renderTurn (sSpyMastersTurn sb) (sTeamTurn sb))))
-    where hintWord = sSpyHint sb
+drawPlayerStats sb = ((getBlueTeamScoreBoard (sBlueTeamScore sb)) <=> (getRedTeamScoreBoard (sRedTeamScore sb))) <+> ((padLeft Max (renderHint hintWordCount)) <=> (padLeft Max (renderTurn (sSpyMastersTurn sb) (sTeamTurn sb))))
+    where hintWordCount = sSpyHint sb
 
 drawSpyBoard :: SpyGameState -> [Widget Hint]
 drawSpyBoard sb = [(drawGrid sb) <=> (drawPlayerStats sb)]
@@ -187,7 +180,7 @@ handleSEvent :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next
 
 handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
-                                    S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (selectCard $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
+                                    S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (updateGame $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
 
 handleSEvent (SpyView sfb) (VtyEvent ev) = 
   case ev of

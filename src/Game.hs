@@ -175,7 +175,7 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pCardColor = (map convertToColor colors),
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = "Player Game Hint, 2",
+                                    pSpyHint = "Waiting for Hint",
                                     pSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
@@ -377,7 +377,7 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sCardColor = (map convertToColor colors),
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = "Spy Game Hint, 2", 
+                                    sSpyHint = "Waiting for Spy Hint", 
                                     sSock = sock
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis

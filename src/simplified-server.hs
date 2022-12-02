@@ -45,7 +45,6 @@ setupServer = do
   bind sock (addrAddress serveraddr)
   listen sock 5
   (conn, _)     <- accept sock
-  -- runTCPEchoServerForever sock 0
   return conn
 
 -- Loads words from a text file into a list.
@@ -55,7 +54,6 @@ getWords path = do contents <- readFile path
 
 sendMess :: Socket -> String -> IO ()
 sendMess sock s = do
---   sock <- openConnection
   sendAll sock $ CH.pack s
 
 main :: IO ()
@@ -91,45 +89,8 @@ spyApp =
     }
 
 
-
-
-
--- sendMess :: Socket -> String -> IO ()
--- sendMess sock s = do
---                 -- sock <- openConnection
---                 sendAll sock $ C.pack s
-
-
 recvMess :: Socket -> IO [Char]
 recvMess sock = do
     -- sock <- openConnection
     x <- recv sock 1024
     return (C.unpack x)
-
-
-
--- runTCPEchoServerForever :: (Eq a, Num a) => Socket -> a -> IO b
--- runTCPEchoServerForever sock msgNum = do 
---   (conn, _)     <- accept sock
---   _ <- forkIO (rrLoop conn) -- conn and sock are same
---   _ <- forkIO (wLoop conn)
---   runTCPEchoServerForever sock $! msgNum + 1
-
--- wLoop :: Socket -> IO ()
--- wLoop sock = do
---     sendAll sock $ C.pack "dwdwdw"
---     print "wLoop: completed writing"
---     -- threadDelay 5000000
---     -- wLoop sock
-
--- rrLoop :: Socket -> IO ()
--- rrLoop sock = do
---   msg <- recv sock 1024
---   let s = C.unpack msg
---   print s
-
---   -- TODO: write into the brick channel here
-
-  
---   print "rrLoop: completed listening"
---   rrLoop sock
