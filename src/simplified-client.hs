@@ -44,7 +44,6 @@ getWords path = do contents <- readFile path
 
 main :: IO ()
 main = do
-  print "Inside client:"
   sock <- openConnection
   let buildVty = do
                       v <- mkVty =<< standardIOConfig
