@@ -9,13 +9,13 @@ import UI.Styles
 
 import Brick 
 import Brick.Types 
-import Foreign.Marshal.Unsafe
+
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
-import Lens.Micro.Mtl (use, (.=), zoom)
+
 
 import Control.Concurrent       
 import Control.Monad             
@@ -184,7 +184,9 @@ handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
 
 handleSEvent (SpyView sfb) (VtyEvent ev) = 
   case ev of
-    V.EvKey V.KEnter [] -> continue $ SpyView sfb
+    V.EvKey V.KEnter [] -> do
+                             liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
+                             continue $ SpyView sfb
     _ -> continue . SpyView =<< (updateGameState sfb ev)
 -- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   -- case key of
