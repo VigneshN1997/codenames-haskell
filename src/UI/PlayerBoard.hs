@@ -82,11 +82,11 @@ renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.
 
 -- | Render red team's score
 getRedTeamScoreBoard :: Int -> Widget Hint
-getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
+getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red Cards left :" ++ (show score))
 
 -- | Render blue team's score
 getBlueTeamScoreBoard :: Int -> Widget Hint
-getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue score :" ++ (show score))
+getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue Cards left :" ++ (show score))
 
 -- | Render which team's turn it is currently
 renderPlayerTurn :: CardColor -> Widget Hint
@@ -119,10 +119,15 @@ handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
     V.KDown  -> M.continue $ (PlayerView  $ (moveCursor DownD playerGameState))
     V.KLeft  -> M.continue $ (PlayerView  $ (moveCursor LeftD playerGameState))
     V.KRight -> M.continue $ (PlayerView  $ (moveCursor RightD playerGameState))
-    V.KEnter -> do
-                    liftIO $ (sendMess (pSock playerGameState) (show (pPlayerCursor playerGameState)))
-                    M.continue $ PlayerView  $ updateGame playerGameState
-    V.KEsc   -> halt (PlayerView playerGameState)
+    V.KEnter -> if (pWait playerGameState)
+                    then M.continue $ (PlayerView  playerGameState)
+                    else
+                      do
+                          liftIO $ (sendMess (pSock playerGameState) (show (pPlayerCursor playerGameState)))
+                          M.continue $ PlayerView  $ updateGame playerGameState
+    V.KEsc   -> do
+                  liftIO $ sendMess (pSock playerGameState) "quit" 
+                  halt (PlayerView playerGameState)
     V.KChar 'e' -> do
                     liftIO $ sendMess (pSock playerGameState) "end"
                     M.continue $ PlayerView  $ endTurn playerGameState

@@ -27,7 +27,10 @@ module Game
   , wordCount
   , spyState
   , updateSelectedCell
+  , waitingStr
   , PlayerCell(..)
+  , redWonStr
+  , blueWonStr
 ) where
 
 import Lens.Micro (ix, (%~), (&))
@@ -98,6 +101,8 @@ data SpymasterBoard = SpyBoard
 type SpyHint = String
 
 waitingStr = "Waiting for Hint"
+redWonStr = "Red Team Won"
+blueWonStr = "Blue Team Won"
 
 -- data TeamDetails
 
@@ -156,7 +161,8 @@ data PlayerGameState = PlayerGameState {
     pPlayerCursor  :: Coord,
     pSpyMastersTurn :: Bool,
     pSock           :: Socket,
-    pWinner        :: CardColor
+    pWinner        :: CardColor,
+    pWait           :: Bool
 } deriving (Show)
 
 -- utility functions
@@ -177,15 +183,16 @@ createPlayerState wordlis colors sock = createBoard cellList
                                 {
                                     pPlayerCursor = (Loc 0 0),
                                     playerGrid = map (getSlice cls) [0..(gridSize - 1)],
-                                    pRedTeamScore = 0,
-                                    pBlueTeamScore = 0,
+                                    pRedTeamScore = 9,
+                                    pBlueTeamScore = 8,
                                     pWordList = wordlis,
                                     pCardColor = (map convertToColor colors),
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
                                     pSpyHint = waitingStr,
                                     pSock = sock,
-                                    pWinner = Yellow
+                                    pWinner = Yellow,
+                                    pWait = True
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -224,38 +231,49 @@ instance GameState PlayerGameState where
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
                                             pSpyHint = updateCurrentHint curHint,
-                                            pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
-
+                                            pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor),
+                                            pWait = updateWait (updateCurrentHint curHint)
                                             }
                                             where cColor = getCardColor game
                                                   teamColor = pTeamTurn game
                                                   redScore = pRedTeamScore game
                                                   blueScore = pBlueTeamScore game
                                                   curHint   = pSpyHint game
+    
     updateGame game = if (isPCardClicked currCard)
                         then game
-                        else updateCurrentTurnsAndScore (selectCard game)
+                        else
+                            if wait
+                                then game
+                                else updateCurrentTurnsAndScore (selectCard game)
                         
                         where
                             (Loc x y) = pPlayerCursor game
                             currCard = playerGrid game !! x !! y
+                            wait = pWait game
     updateSpyHint game newHint = game {pSpyHint = newHint}
 
     endTurn game = game {pTeamTurn = switchTeam teamColor,
-                         pSpyHint = waitingStr}
+                         pSpyHint = waitingStr,
+                         pWait = True}
                         where
                             teamColor = pTeamTurn game
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
 updateWinner _ _ Red (Black) = Blue
 updateWinner _ _ Blue (Black) = Red
-updateWinner 9 _ Blue _ = Red
-updateWinner _ 8 Blue _ = Blue
+updateWinner 0 _ Blue _ = Red
+updateWinner _ 0 Blue _ = Blue
 
 updateWinner _ _ _ _ = Yellow
  
 switchTeam :: CardColor -> CardColor
 switchTeam Blue = Red
 switchTeam Red = Blue
+
+updateWait :: String -> Bool
+updateWait hint = if hint == waitingStr || hint == redWonStr || hint == blueWonStr
+                    then True
+                    else False
 
 instance GameState SpyGameState where
     moveCursor direction game = game {sPlayerCursor = cur}
@@ -339,19 +357,19 @@ isPCardClicked (PCell _ _ isClicked _) = isClicked
 -- common functions between both game states
 
 updateTeam :: CardColor -> CardColor -> String -> CardColor
-updateTeam Red cColor hint       = if (getHintCount hint) == 0 || (hint == waitingStr) || (cColor /= Red) 
+updateTeam Red cColor hint       = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Red) 
                                         then Blue
                                         else Red
-updateTeam Blue cColor hint      = if (getHintCount hint) == 0 || (hint == waitingStr) || (cColor /= Blue) 
+updateTeam Blue cColor hint      = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Blue) 
                                         then Red
                                         else Blue
 
 updateRedTeamScore :: CardColor -> Int -> Int
-updateRedTeamScore Red score  = score + 1
+updateRedTeamScore Red score  = score - 1
 updateRedTeamScore _ score = score
 
 updateBlueTeamScore :: CardColor -> Int -> Int
-updateBlueTeamScore Blue score  = score + 1
+updateBlueTeamScore Blue score  = score - 1
 updateBlueTeamScore _ score = score
 
 updateSpyMastersTurn :: CardColor -> CardColor -> Bool
@@ -414,8 +432,8 @@ createSpyState wordlis colors sock = createBoard cellList
                                 {
                                     sPlayerCursor = (Loc 0 0),
                                     spyGrid = map (getSlice cls) [0..(gridSize - 1)],
-                                    sRedTeamScore = 0,
-                                    sBlueTeamScore = 0,
+                                    sRedTeamScore = 9,
+                                    sBlueTeamScore = 8,
                                     sWordList = wordlis,
                                     sCardColor = (map convertToColor colors),
                                     sTeamTurn = Red,
@@ -500,28 +518,31 @@ getHintCount :: String -> Int
 getHintCount curHint = (read (splitOn "," curHint !! 1) :: Int) - 1
 
 updateCurrentHint :: String -> String
-updateCurrentHint curHint =  let 
-                                    hintSplit = splitOn "," curHint
-                                    clueNum   =  (read (hintSplit!!1) :: Int) - 1 in
-                                    if clueNum > 0
-                                        then
-                                            hintSplit!!0 ++ "," ++ show clueNum
-                                    else
-                                        waitingStr
-                                        -- hintSplit!!0 ++ "," ++ "0"
+updateCurrentHint curHint =  if curHint == waitingStr
+                                    then waitingStr
+                                    else 
+                                        if clueNum > 0
+                                            then hintSplit!!0 ++ "," ++ show clueNum
+                                            else waitingStr
+                                            where
+                                                hintSplit = splitOn "," curHint
+                                                clueNum   =  (read (hintSplit!!1) :: Int) - 1
 
                             
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
 
-updateHintFromSpy msg pb = pb { pSpyHint = msg}
+updateHintFromSpy msg pb = pb { pSpyHint = msg, pWait = False }
 
 updateSelectedCell :: String -> SpyGameState -> SpyGameState
-updateSelectedCell msg sb  = do
-                                let splitMsg = splitOn " " msg
-                                let row = read(splitMsg !! 1) :: Int
-                                let col = read(splitMsg !! 2) :: Int
-                                sb { sPlayerCursor = Loc row col} 
+updateSelectedCell msg sb  = if msg == waitingStr
+                                    then sb
+                                else
+                                    (sb { sPlayerCursor = Loc row col})
+                                        where
+                                            splitMsg = splitOn " " msg
+                                            row = read(splitMsg !! 1) :: Int
+                                            col = read(splitMsg !! 2) :: Int
 data Hint = WordCountField
           deriving (Eq, Ord, Show)
 

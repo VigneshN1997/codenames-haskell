@@ -19,11 +19,9 @@ import qualified Brick.Widgets.Core as BW
 
 import Control.Concurrent
 import Control.Monad
--- import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as C
 
 import Network.Socket
--- import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO()
 import Control.Monad.IO.Class (MonadIO(liftIO))
@@ -103,7 +101,6 @@ wLoop sock = do
     sendAll sock $ C.pack "dwdwdw"
     print "wLoop: completed writing"
 
--- ===============================
 
 getColorBgStyle :: CardColor -> AttrName
 getColorBgStyle Red = styleRedCell
@@ -145,10 +142,10 @@ renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.bo
 renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ str hintW
 
 getRedTeamScoreBoard :: Int -> Widget Hint
-getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red score :" ++ (show score))
+getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleRedCell $ str ("Team Red Cards left :" ++ (show score))
 
 getBlueTeamScoreBoard :: Int -> Widget Hint
-getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue score :" ++ (show score))
+getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue Cards left :" ++ (show score))
 
 renderTurn :: Bool -> CardColor -> Widget Hint
 renderTurn False playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Teams's Turn")
@@ -161,26 +158,6 @@ drawPlayerStats sb = (getBlueTeamScoreBoard (sBlueTeamScore sb) <=> getRedTeamSc
 drawSpyBoard :: SpyGameState -> [Widget Hint]
 drawSpyBoard sb = [(drawGrid sb) <=> (drawPlayerStats sb) <=> drawKeyInstructionsSpy]
 
-
--- g :: SpyGrid
--- g = [[SCell (Loc 0 0) "COLD" True Red,SCell (Loc 0 1) "DEATH" True Red,SCell (Loc 0 2) "DIAMOND" True Red,SCell (Loc 0 3) "DOG" False Red,SCell (Loc 0 4) "DRESS" False Red],[SCell (Loc 1 0) "FRANCE" False Red,SCell (Loc 1 1) "FIRE" False Red,SCell (Loc 1 2) "GLOVE" False Red,SCell (Loc 1 3) "GOLD" True Blue,SCell (Loc 1 4) "HAND" False Blue],[SCell (Loc 2 0) "JACK" False Blue,SCell (Loc 2 1) "LONDON" False Blue,SCell (Loc 2 2) "NEW YORK" True Blue,SCell (Loc 2 3) "SNOW" False Blue,SCell (Loc 2 4) "WATCH" False Blue],[SCell (Loc 3 0) "ALASKA" False Blue,SCell (Loc 3 1) "FROG" False Blue,SCell (Loc 3 2) "FROST" False Black,SCell (Loc 3 3) "CHAIN" False Yellow,SCell (Loc 3 4) "CHRISTMAS" False Yellow],[SCell (Loc 4 0) "COMB" False Yellow,SCell (Loc 4 1) "JEWELER" False Yellow,SCell (Loc 4 2) "HAIR" False Yellow,SCell (Loc 4 3) "LOVE" False Yellow,SCell (Loc 4 4) "STORY" False Yellow]]
--- sb1 = PlayBoard 
---         {
---             cursor = (Loc 2 2),
---             plgrid = g
---         }
-
-
--- mkHintForm :: SpyForm -> Form SpyForm ConnectionTick Hint
--- mkHintForm =
---     let label s w = padBottom (Pad 1) $
---                     (vLimit 1 $ hLimit 15 $ str s <+> fill ' ') <+> w
---     in newForm [ label "Word And Count" @@=
---                    editTextField wordCount WordCountField (Just 1)
---             --    , label "Count" @@=
---             --        editShowableField count CountField
---                ]
-
 -- | Draws the user input space
 drawInput :: SpyStateAndForm -> Widget Hint
 drawInput g = addBorder (T.pack "Word and Count") (E.renderEditor (txt . T.unlines) True (g ^. wordCount))
@@ -190,14 +167,18 @@ handleSEvent :: Codenames -> BrickEvent Hint ConnectionTick -> EventM Hint (Next
 handleSEvent (SpyView sfb) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
                                     S_Str "end" -> continue $ SpyView SpyStateAndForm { _spyState = (endTurn (_spyState sfb)), _wordCount = (_wordCount sfb)}
-
+                                    S_Str "quit" -> halt (SpyView sfb)
                                     S_Str message ->  continue $ (SpyView SpyStateAndForm { _spyState = (updateGame $ updateSelectedCell message (_spyState sfb)), _wordCount = (_wordCount sfb)})
 
 handleSEvent (SpyView sfb) (VtyEvent ev) =
   case ev of
-    V.EvKey V.KEnter [] -> do
-                             liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
-                             continue $ SpyView sfb
+    V.EvKey V.KEnter [] -> 
+                            if (sSpyHint (_spyState sfb) == redWonStr) || (sSpyHint (_spyState sfb) == blueWonStr)
+                              then (continue $ SpyView sfb)
+                              else 
+                                do
+                                liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
+                                continue $ SpyView sfb
     _ -> continue . SpyView =<< (updateGameState sfb ev)
 -- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   -- case key of
@@ -232,8 +213,3 @@ drawKeyInstructionsSpy = (setAvailableSize (31, 12)) $ (withBorderStyle BS.unico
 -- | Adds a rounded border to a widget with the given label
 addBorder :: T.Text -> Widget Hint -> Widget Hint
 addBorder t = withBorderStyle BS.unicodeRounded . B.borderWithLabel (txt t)
-
-
-
--- -- sock = openConnection
--- handleSEvent (SpyView spyGameState) _ = continue $ SpyView spyGameState
