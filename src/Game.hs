@@ -230,9 +230,9 @@ instance GameState PlayerGameState where
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
-                                            pSpyHint = updateCurrentHint curHint,
+                                            pSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor),
-                                            pWait = updateWait (updateCurrentHint curHint)
+                                            pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint)
                                             }
                                             where cColor = getCardColor game
                                                   teamColor = pTeamTurn game
@@ -299,7 +299,7 @@ instance GameState SpyGameState where
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
                                         sBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                         sSpyMastersTurn = updateSpyMastersTurn teamColor cColor,
-                                        sSpyHint = updateCurrentHint curHint,
+                                        sSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                         sWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
                                         }
                                         where cColor = getCardColor game
@@ -517,16 +517,19 @@ updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 getHintCount :: String -> Int
 getHintCount curHint = (read (splitOn "," curHint !! 1) :: Int) - 1
 
-updateCurrentHint :: String -> String
-updateCurrentHint curHint =  if curHint == waitingStr
-                                    then waitingStr
-                                    else 
-                                        if clueNum > 0
-                                            then hintSplit!!0 ++ "," ++ show clueNum
-                                            else waitingStr
-                                            where
-                                                hintSplit = splitOn "," curHint
-                                                clueNum   =  (read (hintSplit!!1) :: Int) - 1
+updateCurrentHint :: CardColor -> CardColor -> String -> String
+updateCurrentHint oldTeamCol newTeamCol curHint =  if curHint == waitingStr
+                                                    then waitingStr
+                                                    else 
+                                                        if oldTeamCol /= newTeamCol
+                                                            then waitingStr
+                                                            else
+                                                                if clueNum > 0
+                                                                    then hintSplit!!0 ++ "," ++ show clueNum
+                                                                    else waitingStr
+                                                                    where
+                                                                        hintSplit = splitOn "," curHint
+                                                                        clueNum   =  (read (hintSplit!!1) :: Int) - 1
 
                             
 
