@@ -21,13 +21,13 @@ module Game
   , convertToColor
   , createPlayerCard
   , slice
---   , updateCurrentHint
   , SpyStateAndForm(..)
   , Hint(..)
   , wordCount
   , spyState
   , updateSelectedCell
   , PlayerCell(..)
+  , updateWinner
 ) where
 
 import Lens.Micro (ix, (%~), (&))

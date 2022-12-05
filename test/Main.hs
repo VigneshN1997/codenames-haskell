@@ -16,7 +16,8 @@ main = runTests
   cursorTests,
   probQCProb,
   endTurnTests,
-  updateSpyHintTests
+  updateSpyHintTests,
+  updateWinnerTests
   ]
 
 cardTests ::  Score -> TestTree
@@ -59,6 +60,18 @@ updateSpyHintTests sc = testGroup "Tests for updating spy hints"
   [
   scoreTest (\_ -> pSpyHint (updateSpyHint pg "New Hint"), (), "New Hint", 1, "updateSpyHint1"),
   scoreTest (\_ -> pSpyHint (updateSpyHint pg "Some other hint"), (), "Some other hint", 1, "updateSpyHint2")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+updateWinnerTests :: Score -> TestTree
+updateWinnerTests sc = testGroup "Tests for updating spy hints"
+  [
+  scoreTest (\_ -> updateWinner 7 7 Red Black, (), Blue, 1, "updateWinner1"),
+  scoreTest (\_ -> updateWinner 7 7 Blue Black, (), Red, 1, "updateWinner2"),
+  scoreTest (\_ -> updateWinner 9 7 Blue Blue, (), Red, 1, "updateWinner3"),
+  scoreTest (\_ -> updateWinner 6 8 Blue Blue, (), Blue, 1, "updateWinner4")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
