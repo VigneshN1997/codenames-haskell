@@ -11,7 +11,7 @@ import Game
 import QCBoard
 
 main :: IO ()
-main = runTests 
+main = runTests
   [ cardTests,
   cursorTests,
   probQCProb
@@ -37,6 +37,16 @@ cursorTests sc = testGroup "Tests for moving cursor"
   scoreTest ((\_ -> pPlayerCursor (moveCursor RightD pg) ), (), Loc 0 1, 1, "move-test3"),
   scoreTest ((\_ -> pPlayerCursor (moveCursor LeftD pg) ), (), Loc 0 4, 1, "move-test4"),
   scoreTest ((\_ -> pPlayerCursor (moveCursor UpD (moveCursor LeftD pg)) ), (), Loc 4 4, 1, "move-test5")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+endTurnTests :: Score -> TestTree
+endTurnTests sc = testGroup "Tests for ending turn of players"
+  [
+  scoreTest (\_ -> pTeamTurn (endTurn pg), (), Blue, 1, "end-turn1"),
+  scoreTest (\_ -> pTeamTurn (endTurn pg), (), Red, 1, "end-turn2")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
