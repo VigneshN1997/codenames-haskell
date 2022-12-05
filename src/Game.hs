@@ -339,14 +339,12 @@ isPCardClicked (PCell _ _ isClicked _) = isClicked
 -- common functions between both game states
 
 updateTeam :: CardColor -> CardColor -> String -> CardColor
-updateTeam Red _ hint       = if (getHintCount hint) == 0 || (hint == waitingStr)
+updateTeam Red cColor hint       = if (getHintCount hint) == 0 || (hint == waitingStr) || (cColor /= Red) 
                                         then Blue
                                         else Red
-updateTeam Blue _ hint      = if (getHintCount hint) == 0 || (hint == waitingStr)
+updateTeam Blue cColor hint      = if (getHintCount hint) == 0 || (hint == waitingStr) || (cColor /= Blue) 
                                         then Red
                                         else Blue
-updateTeam Red cColor _  = if cColor == Red then Red else Blue
-updateTeam Blue cColor _ = if cColor == Blue then Blue else Red
 
 updateRedTeamScore :: CardColor -> Int -> Int
 updateRedTeamScore Red score  = score + 1
