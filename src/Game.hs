@@ -18,12 +18,16 @@ module Game
   , createSpyState
   , updateHintFromPlayer
   , updateHintFromSpy
+  , convertToColor
+  , createPlayerCard
+  , slice
 --   , updateCurrentHint
   , SpyStateAndForm(..)
   , Hint(..)
   , wordCount
   , spyState
   , updateSelectedCell
+  , PlayerCell(..)
 ) where
 
 import Lens.Micro (ix, (%~), (&))

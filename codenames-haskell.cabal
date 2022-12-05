@@ -27,6 +27,7 @@ library
   exposed-modules:
       Codenames
       Game
+      Main
       UI.GameUI
       UI.PlayerBoard
       UI.SpyBoard
@@ -58,6 +59,7 @@ executable chat-client-exe
   other-modules:
       Codenames
       Game
+      Main
       UI.GameUI
       UI.PlayerBoard
       UI.SpyBoard
@@ -88,6 +90,7 @@ executable chat-server-exe
   other-modules:
       Codenames
       Game
+      Main
       UI.GameUI
       UI.PlayerBoard
       UI.SpyBoard
@@ -140,15 +143,18 @@ executable codenames-haskell-exe
 
 test-suite codenames-haskell-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Main.hs
   other-modules:
+      Common
+      Spec
       Test
       Paths_codenames_haskell
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      QuickCheck
+    , base >=4.7 && <5
     , brick
     , bytestring
     , codenames-haskell
@@ -158,8 +164,12 @@ test-suite codenames-haskell-test
     , microlens-mtl
     , microlens-th
     , network
+    , process
     , random
     , split
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
     , text
     , vector
     , vty

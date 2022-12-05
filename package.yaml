@@ -80,7 +80,7 @@ executables:
 
 tests:
   codenames-haskell-test:
-    main:                Spec.hs
+    main:             Main.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -88,3 +88,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - codenames-haskell
+    - QuickCheck
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
+    - process
