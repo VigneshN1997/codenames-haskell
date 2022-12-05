@@ -14,7 +14,9 @@ main :: IO ()
 main = runTests
   [ cardTests,
   cursorTests,
-  probQCProb
+  probQCProb,
+  endTurnTests,
+  updateSpyHintTests
   ]
 
 cardTests ::  Score -> TestTree
@@ -46,7 +48,17 @@ endTurnTests :: Score -> TestTree
 endTurnTests sc = testGroup "Tests for ending turn of players"
   [
   scoreTest (\_ -> pTeamTurn (endTurn pg), (), Blue, 1, "end-turn1"),
-  scoreTest (\_ -> pTeamTurn (endTurn pg), (), Red, 1, "end-turn2")
+  scoreTest (\_ -> pTeamTurn (endTurn $ endTurn pg), (), Red, 1, "end-turn2")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+updateSpyHintTests :: Score -> TestTree
+updateSpyHintTests sc = testGroup "Tests for updating spy hints"
+  [
+  scoreTest (\_ -> pSpyHint (updateSpyHint pg "New Hint"), (), "New Hint", 1, "updateSpyHint1"),
+  scoreTest (\_ -> pSpyHint (updateSpyHint pg "Some other hint"), (), "Some other hint", 1, "updateSpyHint2")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
