@@ -127,6 +127,7 @@ convertToColor "Red" = Red
 convertToColor "Blue" = Blue
 convertToColor "Black" = Black
 convertToColor "Yellow" = Yellow
+convertToColor _ = Yellow
 
 
 wrapAroundCursor :: Int -> Int -> Int

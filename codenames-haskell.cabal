@@ -146,6 +146,7 @@ test-suite codenames-haskell-test
   main-is: Main.hs
   other-modules:
       Common
+      QCBoard
       Spec
       Test
       Paths_codenames_haskell
