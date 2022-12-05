@@ -162,7 +162,8 @@ data PlayerGameState = PlayerGameState {
     pSpyMastersTurn :: Bool,
     pSock           :: Socket,
     pWinner        :: CardColor,
-    pWait           :: Bool
+    pWait           :: Bool,
+    pLogs           :: [String]
 } deriving (Show)
 
 -- utility functions
@@ -192,7 +193,8 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pSpyHint = waitingStr,
                                     pSock = sock,
                                     pWinner = Yellow,
-                                    pWait = True
+                                    pWait = True,
+                                    pLogs = []
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
@@ -225,6 +227,7 @@ instance GameState PlayerGameState where
     getCardColor game = cColor
                             where (Loc x y) = pPlayerCursor game
                                   PCell _ _ _ cColor = playerGrid game !! x !! y
+    
 
     updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor) (curHint),
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
@@ -232,13 +235,16 @@ instance GameState PlayerGameState where
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
                                             pSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor),
-                                            pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint)
+                                            pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint),
+                                            pLogs = updateLogs currLogs teamColor currCard
                                             }
                                             where cColor = getCardColor game
                                                   teamColor = pTeamTurn game
                                                   redScore = pRedTeamScore game
                                                   blueScore = pBlueTeamScore game
                                                   curHint   = pSpyHint game
+                                                  currLogs = pLogs game
+                                                  currCard = getCard game
     
     updateGame game = if (isPCardClicked currCard)
                         then game
@@ -270,10 +276,21 @@ switchTeam :: CardColor -> CardColor
 switchTeam Blue = Red
 switchTeam Red = Blue
 
+getCard :: PlayerGameState -> PlayerCell
+getCard game = playerGrid game !! x !! y
+                where Loc x y = pPlayerCursor game
+
 updateWait :: String -> Bool
 updateWait hint = if hint == waitingStr || hint == redWonStr || hint == blueWonStr
                     then True
                     else False
+
+updateLogs :: [String] -> CardColor -> PlayerCell -> [String]
+updateLogs logs teamColor (PCell _ word _ cColor) = if length logs >= 6
+                                                            then (tail logs) ++ log
+                                                            else logs ++ log
+                                                            where
+                                                                log = ["Team:" ++ (show teamColor) ++ " selected " ++ word ++ " (" ++ (show cColor) ++ ")"]
 
 instance GameState SpyGameState where
     moveCursor direction game = game {sPlayerCursor = cur}

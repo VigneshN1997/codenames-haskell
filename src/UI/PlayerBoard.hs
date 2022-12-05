@@ -74,9 +74,9 @@ drawGrid pb = withBorderStyle BS.unicodeBold
 
 -- | Render hint given by the spymaster
 renderHint :: CardColor -> String -> Widget Hint
-renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Red) $ str " Red Team Won"
+renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Red) $ str redWonStr
 
-renderHint Blue _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Blue) $ str " Blue Team Won"
+renderHint Blue _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Blue) $ str blueWonStr
 
 renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
 
@@ -97,9 +97,12 @@ drawPlayerStats :: PlayerGameState -> Widget Hint
 drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamScoreBoard (pRedTeamScore pb)) <+> (padLeft Max (renderHint (pWinner pb) hintWordCount) <=> padLeft Max (renderPlayerTurn (pTeamTurn pb)))
     where hintWordCount = pSpyHint pb
 
+drawLogs :: PlayerGameState -> Widget Hint
+drawLogs pb = (setAvailableSize (50, 20)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Logs ")) $  (padLeftRight 1) $ str $  unlines $ (pLogs pb)
+
 -- | Render the player side view
 drawPlayerBoard :: PlayerGameState -> [Widget Hint]
-drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb) <=> drawKeyInstructions]
+drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb) <=> (drawKeyInstructions <+> (drawLogs pb))]
 
 drawKeyInstructions :: Widget Hint
 drawKeyInstructions = (setAvailableSize (31, 12)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Help ")) $  (padLeftRight 1) $ str $  unlines $ playerInst  
