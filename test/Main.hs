@@ -11,10 +11,13 @@ import Game
 import QCBoard
 
 main :: IO ()
-main = runTests 
+main = runTests
   [ cardTests,
   cursorTests,
-  probQCProb
+  probQCProb,
+  endTurnTests,
+  updateSpyHintTests,
+  updateWinnerTests
   ]
 
 cardTests ::  Score -> TestTree
@@ -37,6 +40,38 @@ cursorTests sc = testGroup "Tests for moving cursor"
   scoreTest ((\_ -> pPlayerCursor (moveCursor RightD pg) ), (), Loc 0 1, 1, "move-test3"),
   scoreTest ((\_ -> pPlayerCursor (moveCursor LeftD pg) ), (), Loc 0 4, 1, "move-test4"),
   scoreTest ((\_ -> pPlayerCursor (moveCursor UpD (moveCursor LeftD pg)) ), (), Loc 4 4, 1, "move-test5")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+endTurnTests :: Score -> TestTree
+endTurnTests sc = testGroup "Tests for ending turn of players"
+  [
+  scoreTest (\_ -> pTeamTurn (endTurn pg), (), Blue, 1, "end-turn1"),
+  scoreTest (\_ -> pTeamTurn (endTurn $ endTurn pg), (), Red, 1, "end-turn2")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+updateSpyHintTests :: Score -> TestTree
+updateSpyHintTests sc = testGroup "Tests for updating spy hints"
+  [
+  scoreTest (\_ -> pSpyHint (updateSpyHint pg "New Hint"), (), "New Hint", 1, "updateSpyHint1"),
+  scoreTest (\_ -> pSpyHint (updateSpyHint pg "Some other hint"), (), "Some other hint", 1, "updateSpyHint2")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+updateWinnerTests :: Score -> TestTree
+updateWinnerTests sc = testGroup "Tests for updating spy hints"
+  [
+  scoreTest (\_ -> updateWinner 7 7 Red Black, (), Blue, 1, "updateWinner1"),
+  scoreTest (\_ -> updateWinner 7 7 Blue Black, (), Red, 1, "updateWinner2"),
+  scoreTest (\_ -> updateWinner 9 7 Blue Blue, (), Red, 1, "updateWinner3"),
+  scoreTest (\_ -> updateWinner 6 8 Blue Blue, (), Blue, 1, "updateWinner4")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree

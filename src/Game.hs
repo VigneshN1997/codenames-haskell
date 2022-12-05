@@ -21,7 +21,6 @@ module Game
   , convertToColor
   , createPlayerCard
   , slice
---   , updateCurrentHint
   , SpyStateAndForm(..)
   , Hint(..)
   , wordCount
@@ -29,6 +28,7 @@ module Game
   , updateSelectedCell
   , waitingStr
   , PlayerCell(..)
+  , updateWinner
   , redWonStr
   , blueWonStr
 ) where
