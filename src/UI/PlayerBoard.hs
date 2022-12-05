@@ -1,7 +1,8 @@
 module UI.PlayerBoard (
     drawPlayerBoard,
     handleKeyPlayer,
-    sendMess
+    sendMess,
+    drawKeyInstructions
 ) where
 
 import Game
@@ -21,6 +22,13 @@ import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
 import qualified Data.ByteString.Char8 as CH
+
+
+playerInst = [ "move:    ←↓↑→ "
+              , "select word:  enter"
+              , "end turn: e"
+              , "quit:    esc"
+              ]
 
 -- | Get the background style of a card based on its color
 getColorBgStyle :: CardColor -> AttrName
@@ -91,8 +99,10 @@ drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamSc
 
 -- | Render the player side view
 drawPlayerBoard :: PlayerGameState -> [Widget Hint]
-drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb)]
+drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb) <=> drawKeyInstructions]
 
+drawKeyInstructions :: Widget Hint
+drawKeyInstructions = (setAvailableSize (31, 12)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Help ")) $  (padLeftRight 1) $ str $  unlines $ playerInst  
 
 -- send and recieve message APIs
 sendMess :: Socket -> String -> IO ()
@@ -130,3 +140,5 @@ handleKeyPlayer (PlayerView playerGameState) (AppEvent (ConnectionTick csReceive
 handleKeyPlayer (PlayerView playerGameState) _ = M.continue (PlayerView playerGameState)
 
 handleKeyPlayer _ _ = undefined
+
+

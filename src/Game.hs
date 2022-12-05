@@ -97,6 +97,7 @@ data SpymasterBoard = SpyBoard
 
 type SpyHint = String
 
+waitingStr = "Waiting for Hint"
 
 -- data TeamDetails
 
@@ -181,7 +182,7 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pCardColor = (map convertToColor colors),
                                     pTeamTurn = Red,
                                     pSpyMastersTurn = False,
-                                    pSpyHint = "Waiting for Hint",
+                                    pSpyHint = waitingStr,
                                     pSock = sock,
                                     pWinner = Yellow
                                 }
@@ -217,7 +218,7 @@ instance GameState PlayerGameState where
                             where (Loc x y) = pPlayerCursor game
                                   PCell _ _ _ cColor = playerGrid game !! x !! y
 
-    updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor) (getHintCount curHint),
+    updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor) (curHint),
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                             pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
@@ -240,7 +241,7 @@ instance GameState PlayerGameState where
     updateSpyHint game newHint = game {pSpyHint = newHint}
 
     endTurn game = game {pTeamTurn = switchTeam teamColor,
-                         pSpyHint = "Waiting for Hint"}
+                         pSpyHint = waitingStr}
                         where
                             teamColor = pTeamTurn game
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
@@ -275,7 +276,7 @@ instance GameState SpyGameState where
                             where (Loc x y) = sPlayerCursor game
                                   SCell _ _ _ cColor  = spyGrid game !! x !! y
 
-    updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor) (getHintCount curHint),
+    updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor) (curHint),
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
                                         sBlueTeamScore = updateBlueTeamScore cColor blueScore,
                                         sSpyMastersTurn = updateSpyMastersTurn teamColor cColor,
@@ -297,7 +298,7 @@ instance GameState SpyGameState where
     updateSpyHint game newHint = game {sSpyHint = newHint}
 
     endTurn game = game {sTeamTurn = switchTeam teamColor,
-                         sSpyHint  = "Waiting for Hint"}
+                         sSpyHint  = waitingStr}
                         where
                             teamColor = sTeamTurn game
 
@@ -336,9 +337,13 @@ isPCardClicked (PCell _ _ isClicked _) = isClicked
 
 -- common functions between both game states
 
-updateTeam :: CardColor -> CardColor -> Int -> CardColor
-updateTeam Red _ 0       = Blue
-updateTeam Blue _ 0      = Red
+updateTeam :: CardColor -> CardColor -> String -> CardColor
+updateTeam Red _ hint       = if (getHintCount hint) == 0 || (hint == waitingStr)
+                                        then Blue
+                                        else Red
+updateTeam Blue _ hint      = if (getHintCount hint) == 0 || (hint == waitingStr)
+                                        then Red
+                                        else Blue
 updateTeam Red cColor _  = if cColor == Red then Red else Blue
 updateTeam Blue cColor _ = if cColor == Blue then Blue else Red
 
@@ -416,7 +421,7 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sCardColor = (map convertToColor colors),
                                     sTeamTurn = Red,
                                     sSpyMastersTurn = False,
-                                    sSpyHint = "Waiting for Spy Hint", 
+                                    sSpyHint = waitingStr, 
                                     sSock = sock,
                                     sWinner = Yellow
                                 }
@@ -503,7 +508,7 @@ updateCurrentHint curHint =  let
                                         then
                                             hintSplit!!0 ++ "," ++ show clueNum
                                     else
-                                        "Waiting for Hint"
+                                        waitingStr
                                         -- hintSplit!!0 ++ "," ++ "0"
 
                             

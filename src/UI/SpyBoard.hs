@@ -63,6 +63,10 @@ import Control.Lens
   )
 
 
+spyInst = [ "enter :  send hint "
+              , "hint,#words : input in text box"
+              ]
+
 -- send and recieve message APIs
 sendMessFromServer :: Socket -> String -> IO ()
 sendMessFromServer sock s = do
@@ -155,7 +159,7 @@ drawPlayerStats sb = (getBlueTeamScoreBoard (sBlueTeamScore sb) <=> getRedTeamSc
     where hintWordCount = sSpyHint sb
 
 drawSpyBoard :: SpyGameState -> [Widget Hint]
-drawSpyBoard sb = [(drawGrid sb) <=> (drawPlayerStats sb)]
+drawSpyBoard sb = [(drawGrid sb) <=> (drawPlayerStats sb) <=> drawKeyInstructionsSpy]
 
 
 -- g :: SpyGrid
@@ -219,6 +223,10 @@ updateGameState g ev = do
   let oldState = g ^. spyState
       newState = oldState {sSpyHint = T.unpack $ T.unlines $ E.getEditContents $ gEdited ^. wordCount}
   return gEdited {_spyState = newState}
+
+
+drawKeyInstructionsSpy :: Widget Hint
+drawKeyInstructionsSpy = (setAvailableSize (31, 12)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Help ")) $  (padLeftRight 1) $ str $  unlines $ spyInst  
 
 
 -- | Adds a rounded border to a widget with the given label
