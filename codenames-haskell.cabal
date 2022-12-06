@@ -27,6 +27,7 @@ library
   exposed-modules:
       Codenames
       Game
+      Main
       UI.GameUI
       UI.PlayerBoard
       UI.SpyBoard
@@ -37,13 +38,82 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      MissingH
+    , base >=4.7 && <5
     , brick
+    , bytestring
     , containers
     , lens
     , microlens
+    , microlens-mtl
     , microlens-th
     , network
+    , random
+    , split
+    , text
+    , vector
+    , vty
+  default-language: Haskell2010
+
+executable chat-client-exe
+  main-is: simplified-client.hs
+  other-modules:
+      Codenames
+      Game
+      Main
+      UI.GameUI
+      UI.PlayerBoard
+      UI.SpyBoard
+      UI.Styles
+      Paths_codenames_haskell
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MissingH
+    , base
+    , brick
+    , bytestring
+    , containers
+    , lens
+    , microlens
+    , microlens-mtl
+    , microlens-th
+    , network
+    , random
+    , split
+    , text
+    , vector
+    , vty
+  default-language: Haskell2010
+
+executable chat-server-exe
+  main-is: simplified-server.hs
+  other-modules:
+      Codenames
+      Game
+      Main
+      UI.GameUI
+      UI.PlayerBoard
+      UI.SpyBoard
+      UI.Styles
+      Paths_codenames_haskell
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MissingH
+    , base
+    , brick
+    , bytestring
+    , containers
+    , lens
+    , microlens
+    , microlens-mtl
+    , microlens-th
+    , network
+    , random
+    , split
     , text
     , vector
     , vty
@@ -57,14 +127,19 @@ executable codenames-haskell-exe
       app
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      MissingH
+    , base >=4.7 && <5
     , brick
+    , bytestring
     , codenames-haskell
     , containers
     , lens
     , microlens
+    , microlens-mtl
     , microlens-th
     , network
+    , random
+    , split
     , text
     , vector
     , vty
@@ -72,21 +147,35 @@ executable codenames-haskell-exe
 
 test-suite codenames-haskell-test
   type: exitcode-stdio-1.0
-  main-is: Spec.hs
+  main-is: Main.hs
   other-modules:
+      Common
+      QCBoard
+      Spec
+      Test
       Paths_codenames_haskell
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      MissingH
+    , QuickCheck
+    , base >=4.7 && <5
     , brick
+    , bytestring
     , codenames-haskell
     , containers
     , lens
     , microlens
+    , microlens-mtl
     , microlens-th
     , network
+    , process
+    , random
+    , split
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
     , text
     , vector
     , vty

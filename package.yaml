@@ -25,11 +25,16 @@ dependencies:
 - containers
 - microlens
 - microlens-th
+- microlens-mtl
 - lens
 - text
 - vty
 - network
+- bytestring
 - vector
+- split
+- random
+- MissingH
 
 ghc-options:
 - -Wall
@@ -47,7 +52,7 @@ library:
 
 executables:
   codenames-haskell-exe:
-    main:                Main.hs
+    main:               Main.hs
     source-dirs:         app
     ghc-options:
     - -threaded
@@ -56,9 +61,29 @@ executables:
     dependencies:
     - codenames-haskell
 
+  chat-server-exe:
+    hs-source-dirs:      src
+    main-is:             simplified-server.hs
+    ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+    dependencies:       
+    - base
+    - network
+    - split
+    - MissingH
+    
+  chat-client-exe:
+    hs-source-dirs:      src
+    main-is:             simplified-client.hs
+    ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+    dependencies:       
+    - base
+    - network
+    - split
+    - MissingH
+
 tests:
   codenames-haskell-test:
-    main:                Spec.hs
+    main:             Main.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -66,3 +91,8 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - codenames-haskell
+    - QuickCheck
+    - tasty
+    - tasty-hunit
+    - tasty-quickcheck
+    - process
