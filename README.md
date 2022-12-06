@@ -18,13 +18,18 @@ Goals/Stages of project development:
 - (To do depending on scope and time)
     - Saving game state: Intro screen showing play new game or load previous saved game state.
 
-Updates:
+# How to run
+
+
+# Updates:
 
 - Developed the code architecture and the UI.
 - Spy View
 ![Spy View](resources/images/spyview.png?raw=true "Spy View")
 - Player View
 ![Player View](resources/images/playerview.png?raw=true "Player View")
+
+# Files overview
 
 simplified-client.hs 
 - connect to server
