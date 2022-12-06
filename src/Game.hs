@@ -260,7 +260,7 @@ instance GameState PlayerGameState where
                                             pSpyMastersTurn = updateSpyMastersTurn (updateTeam (teamColor) (cColor) (curHint)) teamColor,
                                             pSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor),
-                                            pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint),
+                                            pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint) (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore),
                                             pLogs = updateLogs currLogs teamColor currCard
                                             }
                                             where cColor = getCardColor game
@@ -295,8 +295,8 @@ getCard :: PlayerGameState -> PlayerCell
 getCard game = playerGrid game !! x !! y
                 where Loc x y = pPlayerCursor game
 
-updateWait :: String -> Bool
-updateWait hint = if hint == waitingStr || hint == redWonStr || hint == blueWonStr
+updateWait :: String -> Int -> Int -> Bool
+updateWait hint redScore blueScore = if hint == waitingStr || hint == redWonStr || hint == blueWonStr || redScore == 0 || blueScore == 0
                     then True
                     else False
 
