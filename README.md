@@ -13,7 +13,7 @@ We will be using the Brick library in Haskell to build the game on a TUI.
 
 
 
-Goals/Stages of project development:
+# Goals/Stages of project development:
 
 - Code Architecture: Structure of the project, divided into different modules of UI, game states definition, handling events, implementing game algorithm, defining team scores and leaderboard.
 - Interface module(Board UI design): Develop UI for the spymaster view and the player view. 
