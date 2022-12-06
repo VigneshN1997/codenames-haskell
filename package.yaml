@@ -61,7 +61,7 @@ executables:
     dependencies:
     - codenames-haskell
 
-  chat-server-exe:
+  codenames-spy-exe:
     hs-source-dirs:      src
     main-is:             simplified-server.hs
     ghc-options:         -threaded -rtsopts -with-rtsopts=-N
@@ -71,7 +71,7 @@ executables:
     - split
     - MissingH
     
-  chat-client-exe:
+  codenames-player-exe:
     hs-source-dirs:      src
     main-is:             simplified-client.hs
     ghc-options:         -threaded -rtsopts -with-rtsopts=-N

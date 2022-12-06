@@ -56,7 +56,33 @@ library
     , vty
   default-language: Haskell2010
 
-executable chat-client-exe
+executable codenames-haskell-exe
+  main-is: Main.hs
+  other-modules:
+      Paths_codenames_haskell
+  hs-source-dirs:
+      app
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      MissingH
+    , base >=4.7 && <5
+    , brick
+    , bytestring
+    , codenames-haskell
+    , containers
+    , lens
+    , microlens
+    , microlens-mtl
+    , microlens-th
+    , network
+    , random
+    , split
+    , text
+    , vector
+    , vty
+  default-language: Haskell2010
+
+executable codenames-player-exe
   main-is: simplified-client.hs
   other-modules:
       Codenames
@@ -89,7 +115,7 @@ executable chat-client-exe
     , vty
   default-language: Haskell2010
 
-executable chat-server-exe
+executable codenames-spy-exe
   main-is: simplified-server.hs
   other-modules:
       Codenames
@@ -109,32 +135,6 @@ executable chat-server-exe
     , base
     , brick
     , bytestring
-    , containers
-    , lens
-    , microlens
-    , microlens-mtl
-    , microlens-th
-    , network
-    , random
-    , split
-    , text
-    , vector
-    , vty
-  default-language: Haskell2010
-
-executable codenames-haskell-exe
-  main-is: Main.hs
-  other-modules:
-      Paths_codenames_haskell
-  hs-source-dirs:
-      app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      MissingH
-    , base >=4.7 && <5
-    , brick
-    , bytestring
-    , codenames-haskell
     , containers
     , lens
     , microlens
