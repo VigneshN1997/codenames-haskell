@@ -21,4 +21,7 @@ Goals/Stages of project development:
 Updates:
 
 - Developed the code architecture and the UI.
+- Spy View
 ![Spy View](resources/images/spyview.png?raw=true "Spy View")
+- Player View
+![Player View](resources/images/playerview.png?raw=true "Player View")
