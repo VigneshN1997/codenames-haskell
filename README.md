@@ -81,3 +81,14 @@ PlayerBoard.hs
 GameUI.hs
 - draw game corresponding on the type of view (player/view)
 
+
+# References
+
+- https://github.com/jtdaugherty/brick
+- https://github.com/jtdaugherty/brick/tree/master/programs
+- https://github.com/jtdaugherty/brick/blob/master/docs/guide.rst
+- https://samtay.github.io/posts/introduction-to-brick
+- https://github.com/rmehri01/thock
+- https://github.com/8Gitbrix/2048Haskell
+- https://github.com/evanrelf/sudoku-tui
+- https://wiki.haskell.org/Implement_a_chat_server
