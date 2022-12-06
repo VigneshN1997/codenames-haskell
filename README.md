@@ -21,4 +21,4 @@ Goals/Stages of project development:
 Updates:
 
 - Developed the code architecture and the UI.
-![alt text](https://github.com/VigneshN1997/codenames-haskell/tree/server-client/resources/images/spyview.png?raw=true)
+![Spy View](resources/images/spyview.png?raw=true "Spy View")
