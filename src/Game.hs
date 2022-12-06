@@ -149,8 +149,8 @@ updateSpyMastersTurn updatedTeam currTeam = if updatedTeam == currTeam then Fals
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
 updateWinner _ _ Red (Black) = Blue
 updateWinner _ _ Blue (Black) = Red
-updateWinner 0 _ Blue _ = Red
-updateWinner _ 0 Blue _ = Blue
+updateWinner 0 _ _ _ = Red
+updateWinner _ 0 _ _ = Blue
 updateWinner _ _ _ _ = Yellow
  
 -- | switch teams on end turn
