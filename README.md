@@ -17,3 +17,8 @@ Goals/Stages of project development:
 - Generating word lists from given set of words to be used for a game (File IO to read word lists from persistent storage).
 - (To do depending on scope and time)
     - Saving game state: Intro screen showing play new game or load previous saved game state.
+
+Updates:
+
+- Developed the code architecture and the UI.
+![alt text](https://github.com/VigneshN1997/codenames-haskell/tree/server-client/resources/images/spyview.png?raw=true)
