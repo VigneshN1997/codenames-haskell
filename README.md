@@ -6,10 +6,10 @@ We will be developing the popular board game Codenames. The game has two teams c
 We will be using the Brick library in Haskell to build the game on a TUI. 
 
 # Contributors
-
-<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
-  <img src = "https://contrib.rocks/image?repo = VigneshN1997/codenames-haskell"/>
-</a>
+- Chenna Basavapatna-shankar <cbasavap@ucsd.edu>
+- Prashant Vaidyanathan <pvaidyanathan@ucsd.edu>
+- Simran Barnwal <sbarnwal@ucsd.edu>
+- Vignesh Nanda Kumar <vnandakumar@ucsd.edu>
 
 
 
