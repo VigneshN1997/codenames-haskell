@@ -181,7 +181,7 @@ handleSEvent (SpyView sfb) (VtyEvent ev) =
                                 else
                                   do
                                     liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
-                                    continue $ SpyView sfb
+                                    continue $ SpyView SpyStateAndForm { _spyState = ((_spyState sfb) {sSpyMastersTurn = False}), _wordCount = (_wordCount sfb)}
     _ -> continue . SpyView =<< (updateGameState sfb ev)
 -- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   -- case key of

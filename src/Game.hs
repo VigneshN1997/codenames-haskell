@@ -4,7 +4,7 @@ module Game
 (Direction(..)
   , CardColor(..)
   , Coord(..)
-  , SpyHint(..)
+  , SpyHint
   , PlayerCell(..)
   , SpyCell(..)
   , GameState(..)
@@ -27,7 +27,6 @@ module Game
   , spyState
   , updateSelectedCell
   , waitingStr
-  , PlayerCell(..)
   , updateWinner
   , redWonStr
   , blueWonStr
@@ -115,13 +114,6 @@ data PlayerCell = PCell Coord String Clicked CardColor
 type PlayerRow = [PlayerCell]
 type PlayerGrid = [PlayerRow]
 
--- data PlayerBoard = PlayBoard
---                     {
---                         cursor :: Coord,
---                         plgrid :: PlayerGrid,
---                         pl1score :: Int,
---                         pl2score :: Int 
---                     } deriving (Show)
 
 data Direction
   = UpD
@@ -193,7 +185,7 @@ createPlayerState wordlis colors sock = createBoard cellList
                                     pWordList = wordlis,
                                     pCardColor = (map convertToColor colors),
                                     pTeamTurn = Red,
-                                    pSpyMastersTurn = False,
+                                    pSpyMastersTurn = True,
                                     pSpyHint = waitingStr,
                                     pSock = sock,
                                     pWinner = Yellow,
@@ -236,7 +228,7 @@ instance GameState PlayerGameState where
     updateCurrentTurnsAndScore game = game {pTeamTurn = updateTeam (teamColor) (cColor) (curHint),
                                             pRedTeamScore = updateRedTeamScore cColor redScore ,
                                             pBlueTeamScore = updateBlueTeamScore cColor blueScore,
-                                            pSpyMastersTurn = updateSpyMastersTurn (teamColor) cColor,
+                                            pSpyMastersTurn = updateSpyMastersTurn (updateTeam (teamColor) (cColor) (curHint)) teamColor,
                                             pSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                             pWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor),
                                             pWait = updateWait (updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint),
@@ -265,7 +257,8 @@ instance GameState PlayerGameState where
 
     endTurn game = game {pTeamTurn = switchTeam teamColor,
                          pSpyHint = waitingStr,
-                         pWait = True}
+                         pWait = True,
+                         pSpyMastersTurn = True}
                         where
                             teamColor = pTeamTurn game
 updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
@@ -319,7 +312,7 @@ instance GameState SpyGameState where
     updateCurrentTurnsAndScore game = game {sTeamTurn = updateTeam (teamColor) (cColor) (curHint),
                                         sRedTeamScore = updateRedTeamScore cColor redScore ,
                                         sBlueTeamScore = updateBlueTeamScore cColor blueScore,
-                                        sSpyMastersTurn = updateSpyMastersTurn teamColor cColor,
+                                        sSpyMastersTurn = updateSpyMastersTurn (updateTeam (teamColor) (cColor) (curHint)) teamColor,
                                         sSpyHint = updateCurrentHint (updateTeam (teamColor) (cColor) (curHint)) teamColor curHint,
                                         sWinner = updateWinner (updateRedTeamScore cColor redScore) (updateBlueTeamScore cColor blueScore) (teamColor) (cColor)
                                         }
@@ -338,7 +331,8 @@ instance GameState SpyGameState where
     updateSpyHint game newHint = game {sSpyHint = newHint}
 
     endTurn game = game {sTeamTurn = switchTeam teamColor,
-                         sSpyHint  = waitingStr}
+                         sSpyHint  = waitingStr,
+                         sSpyMastersTurn = True}
                         where
                             teamColor = sTeamTurn game
 
@@ -394,33 +388,7 @@ updateBlueTeamScore Blue score  = score - 1
 updateBlueTeamScore _ score = score
 
 updateSpyMastersTurn :: CardColor -> CardColor -> Bool
-updateSpyMastersTurn Red cColor = if cColor == Red then False else True
-updateSpyMastersTurn Blue cColor = if cColor == Blue then False else True
-
--- updateCurrentTurnsAndScore :: PlayerGameState -> PlayerGameState
--- updateCurrentTurnsAndScore game = game {teamTurn = updateTeam (teamColor) (cColor),
---                                     pRedTeamScore = updateRedTeamScore cColor redScore ,
---                                     pBlueTeamScore = updateBlueTeamScore cColor blueScore,
---                                     spyMastersTurn = updateSpyMastersTurn (teamColor) cColor
---                                     }
---                                 where cColor = getCardColor game
---                                       teamColor = teamTurn game
---                                       redScore = pRedTeamScore game
---                                       blueScore = pBlueTeamScore game
-                            
-
--- updatePlayerGame:: PlayerGameState -> PlayerGameState
--- updatePlayerGame game = if (isCardClicked currCard)
---                         then game
---                         else updateCurrentTurnsAndScore (selectCard game)
-                        
---                         where
---                             (Loc x y) = playerCursor game
---                             currCard = playerGrid game !! x !! y
-
--- functions that should run after new hints from the spy master
--- updateSpyHint :: PlayerGameState -> PlayerGameState
--- updateSpyHint game = game
+updateSpyMastersTurn updatedTeam currTeam = if updatedTeam == currTeam then False else True
 
 
 -- //////////////Spy Game State/////////////////
@@ -458,7 +426,7 @@ createSpyState wordlis colors sock = createBoard cellList
                                     sWordList = wordlis,
                                     sCardColor = (map convertToColor colors),
                                     sTeamTurn = Red,
-                                    sSpyMastersTurn = False,
+                                    sSpyMastersTurn = True,
                                     sSpyHint = waitingStr, 
                                     sSock = sock,
                                     sWinner = Yellow

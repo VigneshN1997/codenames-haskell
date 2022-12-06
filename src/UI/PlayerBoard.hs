@@ -92,9 +92,14 @@ getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicode
 renderPlayerTurn :: CardColor -> Widget Hint
 renderPlayerTurn playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Team's Turn")
 
+renderTurn :: Bool -> CardColor -> Widget Hint
+renderTurn False playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Teams's Turn")
+renderTurn True playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Spy's Turn")
+
+
 -- | Render the player side stats for each team
 drawPlayerStats :: PlayerGameState -> Widget Hint
-drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamScoreBoard (pRedTeamScore pb)) <+> (padLeft Max (renderHint (pWinner pb) hintWordCount) <=> padLeft Max (renderPlayerTurn (pTeamTurn pb)))
+drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamScoreBoard (pRedTeamScore pb)) <+> (padLeft Max (renderHint (pWinner pb) hintWordCount) <=> padLeft Max (renderTurn (pSpyMastersTurn pb) (pTeamTurn pb)))
     where hintWordCount = pSpyHint pb
 
 drawLogs :: PlayerGameState -> Widget Hint
