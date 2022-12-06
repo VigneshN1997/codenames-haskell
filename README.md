@@ -5,6 +5,14 @@ We will be developing the popular board game Codenames. The game has two teams c
 
 We will be using the Brick library in Haskell to build the game on a TUI. 
 
+# Contributors
+
+<a href = "https://github.com/Tanu-N-Prabhu/Python/graphs/contributors">
+  <img src = "https://contrib.rocks/image?repo = VigneshN1997/codenames-haskell"/>
+</a>
+
+
+
 Goals/Stages of project development:
 
 - Code Architecture: Structure of the project, divided into different modules of UI, game states definition, handling events, implementing game algorithm, defining team scores and leaderboard.
