@@ -31,10 +31,14 @@ module Game
   , updateWinner
   , redWonStr
   , blueWonStr
+  , invalidHint
 ) where
 
 import Lens.Micro (ix, (%~), (&))
 import Network.Socket (Socket)
+
+import Data.Char
+import Data.String.Utils
 
 import Lens.Micro (ix, (%~), (&))
 import Brick.Forms
@@ -551,8 +555,26 @@ updateCurrentHint oldTeamCol newTeamCol curHint =  if curHint == waitingStr
                             
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
-
 updateHintFromSpy msg pb = pb { pSpyHint = msg, pWait = False }
+
+
+invalidHint :: SpyHint -> Bool
+invalidHint hint = if not (elem ',' hint)
+                        then True
+                        else 
+                            if not (length hintSplit == 2)
+                                then True
+                                else
+                                    if  (not ((length (hintSplit !! 1)) == 1)) || (not (isDigit ((hintSplit !! 1) !! 0)))
+                                        then True
+                                        else
+                                            if length (hintSplit !! 0) == 0
+                                                then True
+                                                else False
+                            where
+                                hintSplit = splitOn "," (strip hint)
+
+
 
 updateSelectedCell :: String -> SpyGameState -> SpyGameState
 updateSelectedCell msg sb  = if msg == waitingStr

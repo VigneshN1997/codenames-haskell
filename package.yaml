@@ -34,6 +34,7 @@ dependencies:
 - vector
 - split
 - random
+- MissingH
 
 ghc-options:
 - -Wall
@@ -68,6 +69,7 @@ executables:
     - base
     - network
     - split
+    - MissingH
     
   chat-client-exe:
     hs-source-dirs:      src
@@ -77,6 +79,7 @@ executables:
     - base
     - network
     - split
+    - MissingH
 
 tests:
   codenames-haskell-test:

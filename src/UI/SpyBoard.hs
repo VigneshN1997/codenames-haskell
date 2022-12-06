@@ -176,9 +176,12 @@ handleSEvent (SpyView sfb) (VtyEvent ev) =
                             if (sSpyHint (_spyState sfb) == redWonStr) || (sSpyHint (_spyState sfb) == blueWonStr)
                               then (continue $ SpyView sfb)
                               else 
-                                do
-                                liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
-                                continue $ SpyView sfb
+                                if (invalidHint (sSpyHint (_spyState sfb)))
+                                then  continue $ SpyView SpyStateAndForm { _spyState = ((_spyState sfb) {sSpyHint = "ENTER VALID HINT!!"}), _wordCount = (_wordCount sfb)}
+                                else
+                                  do
+                                    liftIO $ (sendMessFromServer (sSock (_spyState sfb)) (sSpyHint (_spyState sfb)))
+                                    continue $ SpyView sfb
     _ -> continue . SpyView =<< (updateGameState sfb ev)
 -- handleSEvent (SpyView spyGameState) (VtyEvent (V.EvKey key [])) =
   -- case key of
