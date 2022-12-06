@@ -19,7 +19,15 @@ Goals/Stages of project development:
     - Saving game state: Intro screen showing play new game or load previous saved game state.
 
 # How to run
+.. code:: haskell
+    stack install
 
+Generates executables
+
+- codenames-haskell-exe
+- codenames-player-exe
+
+Run both executables on separate terminals.
 
 # Updates:
 
