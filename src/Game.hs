@@ -16,6 +16,7 @@ module Game
   , SpyGrid
   , createPlayerState
   , createSpyState
+
   , updateHintFromPlayer
   , updateHintFromSpy
   , convertToColor
@@ -40,6 +41,7 @@ import Data.Char
 import Data.String.Utils
 
 import Lens.Micro (ix, (%~), (&))
+
 import Brick.Forms
   ( Form
   , newForm
@@ -73,7 +75,6 @@ import Data.List.Split
 import Network.Socket.ByteString (recv, sendAll)
 import System.IO(IOMode (ReadMode))
 import Control.Monad.IO.Class (MonadIO(liftIO))
-
 
 
 type RIdx = Int
@@ -392,6 +393,17 @@ updateSpyMastersTurn updatedTeam currTeam = if updatedTeam == currTeam then Fals
 
 
 -- //////////////Spy Game State/////////////////
+
+data Hint = WordField
+          | CountField
+          deriving (Eq, Ord, Show)
+
+data SpyStateAndForm = SpyStateAndForm { _word      :: String
+                            , _count      :: WCount
+                            , _spyState        :: SpyGameState
+                            } deriving (Show)
+
+makeLenses ''SpyStateAndForm
 
 data SpyGameState = SpyGameState {
     spyGrid        :: SpyGrid,

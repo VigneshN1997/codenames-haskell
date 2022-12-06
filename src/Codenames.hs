@@ -36,6 +36,7 @@ getMainMenu = MainMenu menuOptions
 -- initialGameSpy :: Codenames
 -- initialGameSpy = SpyView sb
 
+
 -- downloadedColorList :: [CardColor]
 -- downloadedColorList = ["Red", "Red", "Red", "Red", "Red", "Red", "Red", "Red", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Black", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow"]
 -- egwordList :: [String]
@@ -46,6 +47,9 @@ getMainMenu = MainMenu menuOptions
 
 -- sb :: SpyGameState
 -- sb = createSpyState egwordList downloadedColorList
+
+sfb :: SpyStateAndForm
+sfb = SpyStateAndForm {_word = "", _count = 0, _spyState = sb}
 
 
 menuOptions :: L.GenericList Hint Vec.Vector String
