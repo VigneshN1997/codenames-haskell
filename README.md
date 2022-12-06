@@ -18,10 +18,58 @@ Goals/Stages of project development:
 - (To do depending on scope and time)
     - Saving game state: Intro screen showing play new game or load previous saved game state.
 
-Updates:
+# How to run
+
+
+# Updates:
 
 - Developed the code architecture and the UI.
 - Spy View
 ![Spy View](resources/images/spyview.png?raw=true "Spy View")
 - Player View
 ![Player View](resources/images/playerview.png?raw=true "Player View")
+
+# Files overview
+
+simplified-client.hs 
+- connect to server
+- receive file number to load
+- load the word and colors file
+- create the brick UI for the player
+
+
+simplified-server.hs 
+- setup the server
+- generate a random file number to play
+- send the file number to the client
+- load up the brick UI for the spymaster
+
+Game.hs
+- contains the spy game state and the player game states
+- contains functions to update the game states for both player and spymaster
+
+Common.hs
+- commmon functions for sending and receiving messages
+- file loading
+
+
+UI
+
+Styles.hs
+- define different styles for different cell types
+
+SpyBoard.hs
+- spy board UI
+- drawing spy grid, player scores
+- drawing the input hint editor
+- drawing the current player's turn
+
+PlayerBoard.hs
+- Player board UI
+- drawing player grid, player scores
+- drawing the current player's turn
+- showing logs of the cells selected by the players
+
+GameUI.hs
+- draw game corresponding on the type of view (player/view)
+
