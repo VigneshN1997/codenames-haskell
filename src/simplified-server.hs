@@ -1,30 +1,25 @@
 module Main where
 
-import Control.Concurrent       
-import Control.Monad             
--- import qualified Data.ByteString       as BS
-import qualified Data.ByteString.Char8 as C
+import Control.Concurrent
 
-import qualified Brick.Main as M
 import Brick.BChan
-import Network.Socket 
-import Data.List.Split
-import Network.Socket.ByteString (recv, sendAll)
+import Network.Socket
 import System.IO()
 import Control.Monad.Fix (fix)
 import Graphics.Vty
+import System.Random
+import qualified Brick.Main as M
+import qualified Brick.Widgets.Edit as E
+import qualified Data.Text as T
+
 
 import Codenames
 import Game
 import UI.SpyBoard
 import UI.Styles
 import UI.GameUI
-import qualified Brick.Widgets.Edit as E
-import qualified Data.Text as T
-import System.Random
+import Common
 
-import qualified Data.Text.IO as Text
-import qualified Data.ByteString.Char8 as CH
 
 -- helper function to obtain a socket connection
 openConnection :: IO Socket
@@ -47,15 +42,6 @@ setupServer = do
   (conn, _)     <- accept sock
   return conn
 
--- Loads words from a text file into a list.
-getWords :: FilePath -> IO [String]
-getWords path = do contents <- readFile path
-                   return (lines contents)
-
-sendMess :: Socket -> String -> IO ()
-sendMess sock s = do
-  sendAll sock $ CH.pack s
-
 main :: IO ()
 main = do
         comm_sock <- setupServer
@@ -66,14 +52,14 @@ main = do
         filenum <- randomRIO (1, 16) :: IO Int
         _ <- sendMess comm_sock (show filenum)
         eventChan <- Brick.BChan.newBChan 10
-        reader <- forkIO $ fix $ \loop -> do
+        _ <- forkIO $ fix $ \loop -> do
                 message <- recvMess comm_sock
                 writeBChan eventChan $ ConnectionTick (S_Str message)
                 loop
         
         wordLis <- getWords ("resources/words_files/" ++ (show filenum)  ++".txt")
         colorLis <- getWords ("resources/colors_files/" ++ (show filenum)  ++".txt")
-        endState <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) (T.pack ""), _spyState = (createSpyState wordLis colorLis comm_sock)})) 
+        _ <- M.customMain initialVty buildVty (Just eventChan) spyApp (SpyView (SpyStateAndForm {_wordCount = E.editor WordCountField (Just 1) (T.pack ""), _spyState = (createSpyState wordLis colorLis comm_sock)})) 
         return ()
 
 
@@ -88,9 +74,3 @@ spyApp =
       M.appAttrMap = const attributes
     }
 
-
-recvMess :: Socket -> IO [Char]
-recvMess sock = do
-    -- sock <- openConnection
-    x <- recv sock 1024
-    return (C.unpack x)

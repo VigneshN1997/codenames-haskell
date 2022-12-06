@@ -5,25 +5,22 @@ module UI.PlayerBoard (
     drawKeyInstructions
 ) where
 
-import Game
-import Codenames
-import UI.Styles
-
-import Control.Concurrent
-import Control.Monad.IO.Class
 
 import Brick
-import Network.Socket
+import Control.Monad.IO.Class
 import qualified Brick.Main as M
-import Network.Socket.ByteString (recv, sendAll)
 import qualified Graphics.Vty as V
 import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
 import qualified Brick.Widgets.Center as C
 import qualified Brick.Widgets.Core as BW
-import qualified Data.ByteString.Char8 as CH
 
+import Game
+import Codenames
+import UI.Styles
+import Common
 
+playerInst :: [[Char]]
 playerInst = [ "move:    ←↓↑→ "
               , "select word:  enter"
               , "end turn: e"
@@ -75,9 +72,7 @@ drawGrid pb = withBorderStyle BS.unicodeBold
 -- | Render hint given by the spymaster
 renderHint :: CardColor -> String -> Widget Hint
 renderHint Red _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Red) $ str redWonStr
-
 renderHint Blue _ = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr (getColorBgStyle Blue) $ str blueWonStr
-
 renderHint _ hintW = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleUnclickedCell $ (str hintW)
 
 -- | Render red team's score
@@ -88,6 +83,8 @@ getRedTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeB
 getBlueTeamScoreBoard :: Int -> Widget Hint
 getBlueTeamScoreBoard score = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ withAttr styleBlueCell $ str ("Team Blue Cards left :" ++ (show score))
 
+
+-- | render which team's turn is it currently
 renderTurn :: Bool -> CardColor -> Widget Hint
 renderTurn False playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Teams's Turn")
 renderTurn True playerColor = vLimit 10 $ hLimit 30 $ withBorderStyle BS.unicodeBold $ B.border $ C.hCenter $ (withAttr (getColorBgStyle playerColor)) $ str ((show playerColor) ++ " Spy's Turn")
@@ -98,6 +95,7 @@ drawPlayerStats :: PlayerGameState -> Widget Hint
 drawPlayerStats pb = (getBlueTeamScoreBoard (pBlueTeamScore pb) <=> getRedTeamScoreBoard (pRedTeamScore pb)) <+> (padLeft Max (renderHint (pWinner pb) hintWordCount) <=> padLeft Max (renderTurn (pSpyMastersTurn pb) (pTeamTurn pb)))
     where hintWordCount = pSpyHint pb
 
+-- | Draw the logs of player selected cards in order
 drawLogs :: PlayerGameState -> Widget Hint
 drawLogs pb = (setAvailableSize (50, 20)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Logs ")) $  (padLeftRight 1) $ str $  unlines $ (pLogs pb)
 
@@ -105,14 +103,10 @@ drawLogs pb = (setAvailableSize (50, 20)) $ (withBorderStyle BS.unicodeBold) $ (
 drawPlayerBoard :: PlayerGameState -> [Widget Hint]
 drawPlayerBoard pb = [(drawGrid pb) <=> (drawPlayerStats pb) <=> (drawKeyInstructions <+> (drawLogs pb))]
 
+-- | Render the player instructions to use keys to play game
 drawKeyInstructions :: Widget Hint
 drawKeyInstructions = (setAvailableSize (31, 12)) $ (withBorderStyle BS.unicodeBold) $ (B.borderWithLabel (str " Help ")) $  (padLeftRight 1) $ str $  unlines $ playerInst  
 
--- send and recieve message APIs
-sendMess :: Socket -> String -> IO ()
-sendMess sock s = do
---   sock <- openConnection
-  sendAll sock $ CH.pack s
 
 
 -- | Handle key events on the player view
@@ -137,9 +131,8 @@ handleKeyPlayer (PlayerView playerGameState) (VtyEvent (V.EvKey key [])) =
                     M.continue $ PlayerView  $ endTurn playerGameState
 
     _        -> M.continue $ PlayerView playerGameState
--- handleKeyPlayer playerGameState _ = M.continue $ (PlayerView playerGameState)
 
-
+-- | Handle brick app events (from brick channel)
 handleKeyPlayer (PlayerView playerGameState) (AppEvent (ConnectionTick csReceived)) = do
                                 case csReceived of
                                     S_Str message ->  continue $ (PlayerView (updateHintFromSpy message playerGameState))

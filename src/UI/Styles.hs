@@ -11,13 +11,8 @@ module UI.Styles (
 ) where
 
 import Brick
-import qualified Brick.Main as M
 import qualified Graphics.Vty as V
-import qualified Brick.Widgets.Border as B
 import qualified Brick.Widgets.Border.Style as BS
-import qualified Brick.Widgets.Center as C
-import qualified Brick.Util as U
-import qualified Brick.Widgets.Core as BW
 
 stylePlayerCursor, styleRedCell, styleBlueCell, styleYellowCell, styleBlackCell, styleUnclickedCell, styleBoard :: AttrName
 stylePlayerCursor    = attrName "stylePlayerCursor"

@@ -16,7 +16,6 @@ module Game
   , SpyGrid
   , createPlayerState
   , createSpyState
-
   , updateHintFromPlayer
   , updateHintFromSpy
   , convertToColor
@@ -34,54 +33,19 @@ module Game
   , invalidHint
 ) where
 
-import Lens.Micro (ix, (%~), (&))
-import Network.Socket (Socket)
-
 import Data.Char
 import Data.String.Utils
-
 import Lens.Micro (ix, (%~), (&))
-
-import Brick.Forms
-  ( Form
-  , newForm
-  , formState
-  , formFocus
-  , setFieldValid
-  , renderForm
-  , handleFormEvent
-  , invalidFields
-  , allFieldsValid
-  , focusedFormInputAttr
-  , invalidFormInputAttr
-  , checkboxField
-  , radioField
-  , editShowableField
-  , editTextField
-  , editPasswordField
-  , (@@=)
-  )
--- import Control.Lens
--- import Control.Lens.TH
 import Lens.Micro.TH
-
-import qualified Brick.Widgets.Edit as E
-import qualified Data.Text as T
-
-import qualified Data.ByteString.Char8 as C
-
 import Network.Socket 
 import Data.List.Split
-import Network.Socket.ByteString (recv, sendAll)
-import System.IO(IOMode (ReadMode))
-import Control.Monad.IO.Class (MonadIO(liftIO))
-
+import qualified Brick.Widgets.Edit as E
+import qualified Data.Text as T
 
 type RIdx = Int
 type CIdx = Int
 type Idx = Int
 type Clicked = Bool
-type WCount = Int
 
 data CardColor = Red | Blue | Black | Yellow
     deriving (Eq, Show)
@@ -102,13 +66,23 @@ data SpymasterBoard = SpyBoard
                             spgrid :: SpyGrid
                         } deriving (Show)
 
+data Hint = WordCountField
+          deriving (Eq, Ord, Show)
+
 type SpyHint = String
 
+waitingStr :: String
 waitingStr = "Waiting for Hint"
+
+redWonStr :: String
 redWonStr = "Red Team Won"
+
+blueWonStr :: String
 blueWonStr = "Blue Team Won"
 
--- data TeamDetails
+gridSize::Int
+gridSize = 5
+
 
 data PlayerCell = PCell Coord String Clicked CardColor
     deriving (Eq, Show)
@@ -124,6 +98,15 @@ data Direction
   deriving (Show)
 
 
+
+-- common functions between both game states
+
+-- https://stackoverflow.com/questions/4597820/does-haskell-have-list-slices-i-e-python
+slice :: Int -> Int -> [a] -> [a]
+slice from to xs = take (to - from + 1) (drop from xs)
+
+
+-- | Convert string to card color
 convertToColor :: String -> CardColor
 convertToColor "Red" = Red
 convertToColor "Blue" = Blue
@@ -131,19 +114,67 @@ convertToColor "Black" = Black
 convertToColor "Yellow" = Yellow
 convertToColor _ = Yellow
 
-
+-- | Cursor wraps around game board to prevent it going out of bounds
 wrapAroundCursor :: Int -> Int -> Int
 wrapAroundCursor val n
     | val >= n = val - n
     | val < 0 = val + n
     | otherwise = val
 
--- https://stackoverflow.com/questions/4597820/does-haskell-have-list-slices-i-e-python
-slice :: Int -> Int -> [a] -> [a]
-slice from to xs = take (to - from + 1) (drop from xs)
+-- | On click update the team if wrong card selected
+updateTeam :: CardColor -> CardColor -> String -> CardColor
+updateTeam Red cColor hint       = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Red) 
+                                        then Blue
+                                        else Red
+updateTeam Blue cColor hint      = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Blue) 
+                                        then Red
+                                        else Blue
+updateTeam _ _ _ = undefined
 
-gridSize::Int
-gridSize = 5
+-- | Update red team number of cards remaining
+updateRedTeamScore :: CardColor -> Int -> Int
+updateRedTeamScore Red score  = score - 1
+updateRedTeamScore _ score = score
+
+-- | Update blue team number of cards remaining
+updateBlueTeamScore :: CardColor -> Int -> Int
+updateBlueTeamScore Blue score  = score - 1
+updateBlueTeamScore _ score = score
+
+-- | Update if it is the spy master's turn
+updateSpyMastersTurn :: CardColor -> CardColor -> Bool
+updateSpyMastersTurn updatedTeam currTeam = if updatedTeam == currTeam then False else True
+
+-- | update the winning team
+updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
+updateWinner _ _ Red (Black) = Blue
+updateWinner _ _ Blue (Black) = Red
+updateWinner 0 _ Blue _ = Red
+updateWinner _ 0 Blue _ = Blue
+updateWinner _ _ _ _ = Yellow
+ 
+-- | switch teams on end turn
+switchTeam :: CardColor -> CardColor
+switchTeam Blue = Red
+switchTeam Red = Blue
+switchTeam _ = undefined
+
+getHintCount :: String -> Int
+getHintCount curHint = (read (splitOn "," curHint !! 1) :: Int) - 1
+
+updateCurrentHint :: CardColor -> CardColor -> String -> String
+updateCurrentHint oldTeamCol newTeamCol curHint =  if curHint == waitingStr
+                                                    then waitingStr
+                                                    else 
+                                                        if oldTeamCol /= newTeamCol
+                                                            then waitingStr
+                                                            else
+                                                                if clueNum > 0
+                                                                    then hintSplit!!0 ++ "," ++ show clueNum
+                                                                    else waitingStr
+                                                                    where
+                                                                        hintSplit = splitOn "," curHint
+                                                                        clueNum   =  (read (hintSplit!!1) :: Int) - 1
 
 -- //////////////Player Game State/////////////////
 
@@ -163,14 +194,11 @@ data PlayerGameState = PlayerGameState {
     pLogs           :: [String]
 } deriving (Show)
 
--- utility functions
--- updatePlayerCell :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
--- updatePlayerCell updatePcellFn game = game {playerGrid = playerGrid game & ix y . ix x %~ updatePcellFn }
---   where (Loc x y) = playerCursor game
-
+-- | Create a player card given its attributes
 createPlayerCard :: (String, CardColor, Idx) -> PlayerCell
 createPlayerCard (word, color, idx) = PCell (Loc (idx `div` gridSize) (idx `mod` gridSize)) word False color
 
+--- | Create player state from list of words and colors
 createPlayerState :: [String] -> [String] -> Socket -> PlayerGameState
 createPlayerState wordlis colors sock = createBoard cellList
         where
@@ -262,17 +290,6 @@ instance GameState PlayerGameState where
                          pSpyMastersTurn = True}
                         where
                             teamColor = pTeamTurn game
-updateWinner :: (Int) -> (Int) -> (CardColor) -> (CardColor) -> (CardColor)
-updateWinner _ _ Red (Black) = Blue
-updateWinner _ _ Blue (Black) = Red
-updateWinner 0 _ Blue _ = Red
-updateWinner _ 0 Blue _ = Blue
-
-updateWinner _ _ _ _ = Yellow
- 
-switchTeam :: CardColor -> CardColor
-switchTeam Blue = Red
-switchTeam Red = Blue
 
 getCard :: PlayerGameState -> PlayerCell
 getCard game = playerGrid game !! x !! y
@@ -285,10 +302,19 @@ updateWait hint = if hint == waitingStr || hint == redWonStr || hint == blueWonS
 
 updateLogs :: [String] -> CardColor -> PlayerCell -> [String]
 updateLogs logs teamColor (PCell _ word _ cColor) = if length logs >= 6
-                                                            then (tail logs) ++ log
-                                                            else logs ++ log
+                                                            then (tail logs) ++ l
+                                                            else logs ++ l
                                                             where
-                                                                log = ["Team:" ++ (show teamColor) ++ " selected " ++ word ++ " (" ++ (show cColor) ++ ")"]
+                                                                l = ["Team:" ++ (show teamColor) ++ " selected " ++ word ++ " (" ++ (show cColor) ++ ")"]
+
+updatePCard :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
+updatePCard updateFn pb = pb { playerGrid = playerGrid pb & ix x . ix y %~ updateFn }
+                            where (Loc x y) = pPlayerCursor pb
+
+
+isPCardClicked :: PlayerCell -> Bool
+isPCardClicked (PCell _ _ isClicked _) = isClicked
+
 
 instance GameState SpyGameState where
     moveCursor direction game = game {sPlayerCursor = cur}
@@ -337,73 +363,8 @@ instance GameState SpyGameState where
                         where
                             teamColor = sTeamTurn game
 
--- moveCursor :: Direction -> PlayerGameState -> PlayerGameState
--- moveCursor direction game = game {playerCursor = cur}
---                                 where
---                                     (Loc r c) = playerCursor game
---                                     cur = case direction of
---                                             UpD -> Loc (wrapAroundCursor (r-1) gridSize) c
---                                             DownD -> Loc (wrapAroundCursor (r+1) gridSize) c
---                                             LeftD -> Loc r (wrapAroundCursor (c-1) gridSize)
---                                             RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
-
-
-updatePCard :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
-updatePCard updateFn pb = pb { playerGrid = playerGrid pb & ix x . ix y %~ updateFn }
-                            where (Loc x y) = pPlayerCursor pb
-
-
--- selectCard :: PlayerGameState -> PlayerGameState
--- selectCard pb = updateCard updateFn pb
---     where
---         updateFn :: PlayerCell -> PlayerCell
---         updateFn cell = case cell of
---                             PCell l w True c -> PCell l w True c
---                             PCell l w False c -> PCell l w True c
-
-
--- getCardColor :: PlayerGameState -> CardColor
--- getCardColor game = cColor
---     where (Loc x y) = playerCursor game
---           PCell _ _ _ cColor = playerGrid game !! x !! y
-
-isPCardClicked :: PlayerCell -> Bool
-isPCardClicked (PCell _ _ isClicked _) = isClicked
-
--- common functions between both game states
-
-updateTeam :: CardColor -> CardColor -> String -> CardColor
-updateTeam Red cColor hint       = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Red) 
-                                        then Blue
-                                        else Red
-updateTeam Blue cColor hint      = if (hint == waitingStr) || (getHintCount hint) == 0 || (cColor /= Blue) 
-                                        then Red
-                                        else Blue
-
-updateRedTeamScore :: CardColor -> Int -> Int
-updateRedTeamScore Red score  = score - 1
-updateRedTeamScore _ score = score
-
-updateBlueTeamScore :: CardColor -> Int -> Int
-updateBlueTeamScore Blue score  = score - 1
-updateBlueTeamScore _ score = score
-
-updateSpyMastersTurn :: CardColor -> CardColor -> Bool
-updateSpyMastersTurn updatedTeam currTeam = if updatedTeam == currTeam then False else True
-
-
 -- //////////////Spy Game State/////////////////
 
-data Hint = WordField
-          | CountField
-          deriving (Eq, Ord, Show)
-
-data SpyStateAndForm = SpyStateAndForm { _word      :: String
-                            , _count      :: WCount
-                            , _spyState        :: SpyGameState
-                            } deriving (Show)
-
-makeLenses ''SpyStateAndForm
 
 data SpyGameState = SpyGameState {
     spyGrid        :: SpyGrid,
@@ -445,98 +406,20 @@ createSpyState wordlis colors sock = createBoard cellList
                                 }
             getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
 
--- updateSpyHint :: PlayerGameState -> PlayerGameState
--- updateSpyHint game = game
-
-
--- moveCursor :: Direction -> SpyGameState -> SpyGameState
--- moveCursor direction game = game {playerCursor = cur}
---                                 where
---                                     (Loc r c) = playerCursor game
---                                     cur = case direction of
---                                             UpD -> Loc (wrapAroundCursor (r-1) gridSize) c
---                                             DownD -> Loc (wrapAroundCursor (r+1) gridSize) c
---                                             LeftD -> Loc r (wrapAroundCursor (c-1) gridSize)
---                                             RightD -> Loc r (wrapAroundCursor (c+1) gridSize)
 
 updateSCard :: (SpyCell -> SpyCell) -> SpyGameState -> SpyGameState
 updateSCard updateFn sb = sb { spyGrid = spyGrid sb & ix x . ix y %~ updateFn }
   where (Loc x y) = sPlayerCursor sb
 
 
--- selectCard :: SpyGameState -> SpyGameState
--- selectCard sb = updateCard updateFn sb
---     where
---         updateFn :: SpyCell -> SpyCell
---         updateFn cell = case cell of
---                             PCell l w True c -> PCell l w True c
---                             PCell l w False c -> PCell l w True c
-
-
--- getCardColor :: SpyGameState -> CardColor
--- getCardColor game = cColor
---     where (Loc x y) = playerCursor game
---           PCell _ _ _ cColor = spyGrid game !! x !! y
-
 isSCardClicked :: SpyCell -> Bool
 isSCardClicked (SCell _ _ isClicked _) = isClicked
 
-
-
--- updateCurrentTurnsAndScore :: SpyGameState -> SpyGameState
--- updateCurrentTurnsAndScore game = game {teamTurn = updateTeam (teamColor) (cColor),
---                                     sRedTeamScore = updateRedTeamScore cColor redScore ,
---                                     sBlueTeamScore = updateBlueTeamScore cColor blueScore,
---                                     spyMastersTurn = updateSpyMastersTurn (teamColor) cColor
---                                     }
---                                 where cColor = getCardColor game
---                                       teamColor = teamTurn game
---                                       redScore = sRedTeamScore game
---                                       blueScore = sBlueTeamScore game
-                            
-
--- updateSpyGame:: SpyGameState -> SpyGameState
--- updateSpyGame game = if (isCardClicked currCard)
---                         then game
---                         else updateCurrentTurnsAndScore (selectCard game)
-                        
---                         where
---                             (Loc x y) = playerCursor game
---                             currCard = spyGrid game !! x !! y
-
--- functions that should run after new hints from the spy master
--- updateSpyHint :: SpyGameState -> SpyHint -> SpyGameState
--- updateSpyHint game newHint = game {spyHint = newHint}
-
-
-
 updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
-
 updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
-
-
-getHintCount :: String -> Int
-getHintCount curHint = (read (splitOn "," curHint !! 1) :: Int) - 1
-
-updateCurrentHint :: CardColor -> CardColor -> String -> String
-updateCurrentHint oldTeamCol newTeamCol curHint =  if curHint == waitingStr
-                                                    then waitingStr
-                                                    else 
-                                                        if oldTeamCol /= newTeamCol
-                                                            then waitingStr
-                                                            else
-                                                                if clueNum > 0
-                                                                    then hintSplit!!0 ++ "," ++ show clueNum
-                                                                    else waitingStr
-                                                                    where
-                                                                        hintSplit = splitOn "," curHint
-                                                                        clueNum   =  (read (hintSplit!!1) :: Int) - 1
-
-                            
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
 updateHintFromSpy msg pb = pb { pSpyHint = msg, pWait = False }
-
 
 invalidHint :: SpyHint -> Bool
 invalidHint hint = if not (elem ',' hint)
@@ -554,8 +437,6 @@ invalidHint hint = if not (elem ',' hint)
                             where
                                 hintSplit = splitOn "," (strip hint)
 
-
-
 updateSelectedCell :: String -> SpyGameState -> SpyGameState
 updateSelectedCell msg sb  = if msg == waitingStr
                                     then sb
@@ -565,18 +446,9 @@ updateSelectedCell msg sb  = if msg == waitingStr
                                             splitMsg = splitOn " " msg
                                             row = read(splitMsg !! 1) :: Int
                                             col = read(splitMsg !! 2) :: Int
-data Hint = WordCountField
-          deriving (Eq, Ord, Show)
 
 data SpyStateAndForm = SpyStateAndForm { _wordCount      :: E.Editor T.Text Hint,
                                 _spyState :: SpyGameState} 
     deriving (Show)
 
 makeLenses ''SpyStateAndForm        
-
-                   
-
-
-
-
-

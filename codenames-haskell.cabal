@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Codenames
+      Common
       Game
       Main
       UI.GameUI
@@ -59,6 +60,7 @@ executable chat-client-exe
   main-is: simplified-client.hs
   other-modules:
       Codenames
+      Common
       Game
       Main
       UI.GameUI
@@ -91,6 +93,7 @@ executable chat-server-exe
   main-is: simplified-server.hs
   other-modules:
       Codenames
+      Common
       Game
       Main
       UI.GameUI
