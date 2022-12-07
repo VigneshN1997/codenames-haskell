@@ -1,6 +1,5 @@
 module Main where
 
-import System.Exit (exitFailure)
 
 import Test.Tasty
 import Common
@@ -17,7 +16,10 @@ main = runTests
   probQCProb,
   endTurnTests,
   updateSpyHintTests,
-  updateWinnerTests
+  updateWinnerTests,
+  isSpyTurnTests,
+  playerWaitTests,
+  getCardLocTests
   ]
 
 cardTests ::  Score -> TestTree
@@ -66,7 +68,7 @@ updateSpyHintTests sc = testGroup "Tests for updating spy hints"
     scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
 
 updateWinnerTests :: Score -> TestTree
-updateWinnerTests sc = testGroup "Tests for updating spy hints"
+updateWinnerTests sc = testGroup "Tests for updating winner"
   [
   scoreTest (\_ -> updateWinner 7 7 Red Black, (), Blue, 1, "updateWinner1"),
   scoreTest (\_ -> updateWinner 7 7 Blue Black, (), Red, 1, "updateWinner2"),
@@ -77,42 +79,70 @@ updateWinnerTests sc = testGroup "Tests for updating spy hints"
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
     scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
 
+isSpyTurnTests :: Score -> TestTree
+isSpyTurnTests sc = testGroup "Tests for updating spy turn"
+  [
+  scoreTest (\_ -> updateSpyMastersTurn Blue Blue, (), False, 1, "isSpyTurn1"),
+  scoreTest (\_ -> updateSpyMastersTurn Red Red, (), False, 1, "isSpyTurn2"),
+  scoreTest (\_ -> updateSpyMastersTurn Blue Red, (), True, 1, "isSpyTurn3"),
+  scoreTest (\_ -> updateSpyMastersTurn Red Blue, (), True, 1, "isSpyTurn4")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+playerWaitTests :: Score -> TestTree
+playerWaitTests sc = testGroup "Tests for updating player wait"
+  [
+  scoreTest (\_ -> updateWait waitingStr 7 7, (), True, 1, "playerWait1"),
+  scoreTest (\_ -> updateWait redWonStr 0 4, (), True, 1, "playerWait2"),
+  scoreTest (\_ -> updateWait blueWonStr 3 0, (), True, 1, "playerWait3")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+getCardLocTests :: Score -> TestTree
+getCardLocTests sc = testGroup "Tests for getting card at a location"
+  [ scoreTest (\_ -> getCard (pg {pPlayerCursor = Loc 0 1}), (), PCell (Loc 0 1) "DEATH" False Red, 1, "getCard1"),
+    scoreTest (\_ -> getCard (pg {pPlayerCursor = Loc 1 2}), (), PCell (Loc 1 2) "GLOVE" False Red, 1, "getCard2"),
+    scoreTest (\_ -> getCard (pg {pPlayerCursor = Loc 2 3}), (), PCell (Loc 2 3) "SNOW" False Blue, 1, "getCard3"),
+    scoreTest (\_ -> getCard (pg {pPlayerCursor = Loc 3 4}), (), PCell (Loc 3 4) "CHRISTMAS" False Yellow, 1, "getCard4"),
+    scoreTest (\_ -> getCard (pg {pPlayerCursor = Loc 4 4}), (), PCell (Loc 4 4) "STORY" False Yellow, 1, "getCard5")
+    ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
+-- inputValidationTests :: Score -> TestTree
+-- inputValidationTests sc = testGroup "Tests for updating spy hints"
+--   [
+--   scoreTest (\_ -> updateSpyMastersTurn Blue Blue, (), False, 1, "isSpyTurn1"),
+--   scoreTest (\_ -> updateSpyMastersTurn Red Red, (), False, 1, "isSpyTurn2"),
+--   scoreTest (\_ -> updateSpyMastersTurn Blue Red, (), True, 1, "isSpyTurn3"),
+--   scoreTest (\_ -> updateSpyMastersTurn Red Blue, (), True, 1, "isSpyTurn4")
+--   ]
+--   where
+--     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+--     scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+
 probQCProb :: Score -> TestTree
 probQCProb sc = testGroup "QuickCheck Properties"
   [ scoreProp sc ("prop_cursor_in_range"      , QCBoard.prop_cursor_in_range     , 5),
   scoreProp sc ("prob_scores_in_range"      , QCBoard.prob_scores_in_range     , 5)
   ]
 
-
+colorList :: [String]
 colorList = ["Red", "Red", "Red", "Red", "Red", "Red", "Red", "Red", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Blue", "Black", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow", "Yellow"]
-wordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
-gridSize = 5
--- tupleList = zip3 wordList (map convertToColor colorList) [0..((gridSize*gridSize) - 1)]
--- cellList = map createPlayerCard tupleList
 
--- pb :: PlayerGameState
--- pb = createBoard cellList
+wordList :: [String]
+wordList = ["COLD", "DEATH", "DIAMOND", "DOG", "DRESS", "FRANCE", "FIRE", "GLOVE", "GOLD", "HAND", "JACK", "LONDON", "NEW YORK", "SNOW", "WATCH", "ALASKA", "FROG", "FROST", "CHAIN", "CHRISTMAS", "COMB", "JEWELER", "HAIR", "LOVE", "STORY"]
+
+gridSize :: Int
+gridSize = 5
 
 sock :: Socket
 sock = undefined
 
 pg :: PlayerGameState
-pg = createPlayerState colorList wordList sock
-
-
--- createBoard :: [PlayerCell] -> PlayerGameState 
--- createBoard cls = PlayerGameState 
---                     {
---                         pPlayerCursor = (Loc 0 0),
---                         playerGrid = map (getSlice cls) [0..(gridSize - 1)],
---                         pRedTeamScore = 0,
---                         pBlueTeamScore = 0,
---                         pWordList = wordList,
---                         pCardColor = (map convertToColor colorList),
---                         pTeamTurn = Red,
---                         pSpyMastersTurn = False,
---                         pSpyHint = "Waiting for Hint",
---                         pSock = sock,
---                         pWinner = Yellow
---                     }
--- getSlice lis n = slice (n*gridSize) (n*gridSize + (gridSize - 1)) lis
+pg = createPlayerState wordList colorList sock

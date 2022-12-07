@@ -31,6 +31,9 @@ module Game
   , redWonStr
   , blueWonStr
   , invalidHint
+  , updateSpyMastersTurn
+  , updateWait
+  , getCard
 ) where
 
 import Data.Char
