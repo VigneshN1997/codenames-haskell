@@ -70,8 +70,8 @@ updateWinnerTests sc = testGroup "Tests for updating spy hints"
   [
   scoreTest (\_ -> updateWinner 7 7 Red Black, (), Blue, 1, "updateWinner1"),
   scoreTest (\_ -> updateWinner 7 7 Blue Black, (), Red, 1, "updateWinner2"),
-  scoreTest (\_ -> updateWinner 9 7 Blue Blue, (), Red, 1, "updateWinner3"),
-  scoreTest (\_ -> updateWinner 6 8 Blue Blue, (), Blue, 1, "updateWinner4")
+  scoreTest (\_ -> updateWinner 0 7 Blue Blue, (), Red, 1, "updateWinner3"),
+  scoreTest (\_ -> updateWinner 6 0 Blue Blue, (), Blue, 1, "updateWinner4")
   ]
   where
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree

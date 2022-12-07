@@ -42,7 +42,7 @@ inRangeCursor pg = if (x >= 0 && x < gridSize) && (y >= 0 && y < gridSize)
                         Loc x y = pPlayerCursor pg
 
 inRangeScores :: PlayerGameState -> Bool
-inRangeScores pg = if (redScore >= 0 && redScore < 9) && (blueScore >= 0 && blueScore < 8)
+inRangeScores pg = if (redScore >= 0 && redScore <= 9) && (blueScore >= 0 && blueScore <= 8)
                         then True
                         else False
                     where

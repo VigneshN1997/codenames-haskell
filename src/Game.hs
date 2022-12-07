@@ -305,7 +305,10 @@ updateLogs logs teamColor (PCell _ word _ cColor) = if length logs >= 6
                                                             then (tail logs) ++ l
                                                             else logs ++ l
                                                             where
-                                                                l = ["Team:" ++ (show teamColor) ++ " selected " ++ word ++ " (" ++ (show cColor) ++ ")"]
+                                                                l = ["Team:" ++ (show teamColor) ++ " selected " ++ word ++ " (" ++ colStr ++ ")"]
+                                                                colStr = if cColor == Yellow
+                                                                            then "Pink"
+                                                                            else (show cColor)
 
 updatePCard :: (PlayerCell -> PlayerCell) -> PlayerGameState -> PlayerGameState
 updatePCard updateFn pb = pb { playerGrid = playerGrid pb & ix x . ix y %~ updateFn }
@@ -419,7 +422,7 @@ updateHintFromPlayer :: String -> SpyGameState -> SpyGameState
 updateHintFromPlayer msg sb = sb { sSpyHint = (msg) }
 
 updateHintFromSpy :: String -> PlayerGameState -> PlayerGameState
-updateHintFromSpy msg pb = pb { pSpyHint = msg, pWait = False }
+updateHintFromSpy msg pb = pb { pSpyHint = msg, pWait = False, pSpyMastersTurn = False }
 
 invalidHint :: SpyHint -> Bool
 invalidHint hint = if not (elem ',' hint)

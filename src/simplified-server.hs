@@ -50,6 +50,7 @@ main = do
                       return v
         initialVty <- buildVty
         filenum <- randomRIO (1, 16) :: IO Int
+        -- filenum <- randomRIO (4, 4) :: IO Int
         _ <- sendMess comm_sock (show filenum)
         eventChan <- Brick.BChan.newBChan 10
         _ <- forkIO $ fix $ \loop -> do
