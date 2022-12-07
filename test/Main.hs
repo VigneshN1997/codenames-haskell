@@ -19,7 +19,8 @@ main = runTests
   updateWinnerTests,
   isSpyTurnTests,
   playerWaitTests,
-  getCardLocTests
+  getCardLocTests,
+  inputValidationTests
   ]
 
 cardTests ::  Score -> TestTree
@@ -114,22 +115,26 @@ getCardLocTests sc = testGroup "Tests for getting card at a location"
     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
     scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
 
--- inputValidationTests :: Score -> TestTree
--- inputValidationTests sc = testGroup "Tests for updating spy hints"
---   [
---   scoreTest (\_ -> updateSpyMastersTurn Blue Blue, (), False, 1, "isSpyTurn1"),
---   scoreTest (\_ -> updateSpyMastersTurn Red Red, (), False, 1, "isSpyTurn2"),
---   scoreTest (\_ -> updateSpyMastersTurn Blue Red, (), True, 1, "isSpyTurn3"),
---   scoreTest (\_ -> updateSpyMastersTurn Red Blue, (), True, 1, "isSpyTurn4")
---   ]
---   where
---     scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
---     scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
+inputValidationTests :: Score -> TestTree
+inputValidationTests sc = testGroup "Tests for validating input"
+  [
+  scoreTest (\_ -> invalidHint "word,3", (), False, 1, "inputValidation1"),
+  scoreTest (\_ -> invalidHint "hint5,2", (), False, 1, "inputValidation2"),
+  scoreTest (\_ -> invalidHint "hint,45", (), True, 1, "inputValidation3"),
+  scoreTest (\_ -> invalidHint "hint", (), True, 1, "inputValidation4"),
+  scoreTest (\_ -> invalidHint ",,,", (), True, 1, "inputValidation5"),
+  scoreTest (\_ -> invalidHint "hint1,hint2,hint3,3", (), True, 1, "inputValidation6"),
+  scoreTest (\_ -> invalidHint "3,hint5", (), True, 1, "inputValidation7"),
+  scoreTest (\_ -> invalidHint ",6", (), True, 1, "inputValidation8")
+  ]
+  where
+    scoreTest :: (Show b, Eq b) => (a -> b, a, b, Int, String) -> TestTree
+    scoreTest (f, x, r, n, msg) = scoreTest' sc (return . f, x, r, n, msg)
 
 probQCProb :: Score -> TestTree
 probQCProb sc = testGroup "QuickCheck Properties"
-  [ scoreProp sc ("prop_cursor_in_range"      , QCBoard.prop_cursor_in_range     , 5),
-  scoreProp sc ("prob_scores_in_range"      , QCBoard.prob_scores_in_range     , 5)
+  [ scoreProp sc ("prop_cursor_in_range"      , QCBoard.prop_cursor_in_range     , 1),
+  scoreProp sc ("prob_scores_in_range"      , QCBoard.prob_scores_in_range     , 1)
   ]
 
 colorList :: [String]
